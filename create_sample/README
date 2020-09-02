@@ -1,0 +1,6 @@
+This program is just to showcase the way we can create threads in a linux exvironment.
+
+compile and exexute commands.
+
+[ ] gcc thread.c -lpthread
+[ ] ./a.out
