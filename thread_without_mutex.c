@@ -15,7 +15,7 @@ void *func(void *p)
             pthread_self());
     for (i = 0; i<0xFFFFFFFF; i++) {
         /*
-         * Just a dummp loop. But think of this as a critical code which needs
+         * Just a dummy loop. But think of this as a critical code which needs
          * to be accessed only by one thread at a time.
          *
          * Example of a critical section : updating a global variable.
