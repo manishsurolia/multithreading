@@ -1,0 +1,40 @@
+This program is just to showcase the use of threads and how we can create
+threads in Linux environment.
+
+Note : Every process has its own default thread (called 'Main thread'), and
+whatever new thread we create is addition to that main thread. Means, if you
+create one thread, the total number of threads in your program are going to be:
+
+    = One Main thread + One created thread
+    = 2 threads
+
+To showcase the usefulness of threads, we are trying to write two functions for
+a game of two players, which need to work infinitely and produce turns for each
+player of the game. Sequence does not matter.
+
+The first example, 'turns.c' just tries to execute the functions one by one, and
+get stuck with the first execution itself, as the first function has an infinite
+loop.
+
+Compile and execute commands as below:
+
+[ ] gcc turns.c
+[ ] ./a.out
+
+The problem :
+-------------
+Here, Both function executions are part of a single 'main' thread of the
+program, and are sequential (executes one function after the other). This cause
+the issue of program getting stuck in a single main thread at a point in
+program.
+
+To solve this problem, lets add one more thread to this program to make it a two
+thread program and give execution of each function to different threads.
+
+Then we will see that both the functions are getting executed in parallel.
+
+[ ] gcc turns_with_pthreads.c -lpthread
+[ ] ./a.out
+
+Note : The above is a common scenario, where we want to do multiple things
+'infinitely' and 'in parallel' in the same process.
