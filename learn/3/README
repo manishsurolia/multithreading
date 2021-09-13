@@ -1,0 +1,9 @@
+This example just shows that if two processes wait for each other to compelte
+(using 'pthread_join'), it creates a deadlock and the whole process gets stuck.
+
+Thread1 waits for Thread2 to complete.
+Thread2 waits for Thread1 to complete.
+
+In this example, 'Thread1' is the main thread and the 'Thread2' is the one
+created by main thread and due to 'pthread_join' call in both threads, both of
+them wait for each other.
