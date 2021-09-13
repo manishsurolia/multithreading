@@ -1,0 +1,76 @@
+pthread_join :
+-------------
+
+The  pthread_join() function waits for the specified thread to terminate. If
+that thread has already terminated, then pthread_join() returns im‐mediately.
+The specified thread must be joinable.
+
+To understand 'pthread_join' completely, lets take the same example from our
+last example number 1, where we had 2 threads (one main thread + one user
+created thread), executing each player turns infinitely, and OS was suffling
+between those threads as per its own thread scheduling mechanism (we are not
+sure who's turn will be next).
+
+Now, to understand the use of 'pthread_join', lets assume that 'my_turn'
+has loop only for 5 counts, whereas 'your_turn' has loop for 10 counts as below:
+
+void *my_turn(void *p) <-- Executed by newly created thread.
+{
+    for (int i=0; i<10; i++) {    <-- Loop for 10 counts.
+        sleep(1);
+        printf("My Turn!! - %d\n", (i+1));
+    }
+}
+
+void your_turn() <-- Executed by the 'main' thread.
+{
+    for (int i=0; i<5; i++) {    <-- Loop for 5 counts.
+        sleep(1);
+        printf("Your Turn!! - %d\n", (i+1));
+    }
+}
+
+int main()
+{
+    pthread_t t_id;
+    pthread_create(&t_id, NULL, my_turn, NULL); <-- Executes for 10 counts.
+    your_turn(); <-- Executes for 5 counts, but as soon as this call completes,
+                     main() function will just exit, and not wait for the
+                     other thread to complete, which was supposed to complete
+                     10 counts.
+    exit(0);
+}
+
+Here, as soon as the main thread function call 'your_turn' will complete,
+function 'main' will return exit/return, stopping the other thread in between
+and this is what we dont want, we want both of the threads to complete even
+though the 'main' thread execution is over.
+
+To acheive this, we can use the function 'pthread_join' to block the execution
+of 'main' thread until the other thread finishes. Means, this function is a
+blocking function call, it will not return until the provided thread is not
+completed.
+
+Below is the solution:
+
+int main()
+{
+    pthread_t t_id;
+    pthread_create(&t_id, NULL, my_turn, NULL);
+    your_turn();
+    pthread_join(t_id, NULL); <-- Blocking call, blocks until 't_id' finishes.
+    exit(0);
+}
+
+-----------------------------------------------------------------------------
+
+Execution:
+---------
+
+[ ] gcc turns_with_pthreads.c -lpthread
+[ ] ./a.out
+
+
+[ ] gcc turns_with_pthreads_join.c -lpthread
+[ ] ./a.out
+
