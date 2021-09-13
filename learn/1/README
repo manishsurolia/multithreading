@@ -29,7 +29,7 @@ the issue of program getting stuck in a single main thread at a point in
 program.
 
 To solve this problem, lets add one more thread to this program to make it a two
-thread program and give execution of each function to different threads.
+threads program and give execution of each function to different threads.
 
 Then we will see that both the functions are getting executed in parallel.
 
