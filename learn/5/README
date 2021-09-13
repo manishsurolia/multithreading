@@ -1,0 +1,8 @@
+This example is exactly same as the last one except that, it is using mutex
+lock around critical section, so that data fetch from the address of global
+variable of 'counter', updation and setting it back to the same address happens
+in atomic way.
+
+If one thread is executing the critical section code, other thread can not
+start executing the same code as its locked. Other thread will wait until the
+lock is released. 
