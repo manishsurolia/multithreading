@@ -1,0 +1,127 @@
+This example just shows that if two or more threads tries to update the same
+global variable asyncronously, we see un-expected behaviour.
+
+Here, in this example (counter.c), we expect that each thread will increment
+the counter by '1000000000' times and the final result should be '2000000000',
+but we dont get this result, and also the result is different every time.
+
+Let's try to understand the reason behind it.
+
+To understand this, we need to keep two things in mind.
+(1) Threads inside a process don't share registers. When context switch happens
+between differnt threads, registers are upated with the values of TCB
+(Thread control block) of the new thread.
+(2) Each thread has its own stack in the process space. Means, threads don't
+share the their stacks. If there are 2 threads, there will be 2 stacks in the
+process space, and if there are 3 threads there will be 3 differnet stacks in
+the process address space, and so on.
+
+
+We can think of the stack space with one thread as below,
+
+        _______________________
+        |                     |
+        |                     |
+        |   Program Code      |
+        |                     |
+        |                     |
+        ----------------------
+        |                     |
+        |                     |
+        |      Heap           |
+        |                     |
+        |                     |
+        -----------------------
+        |        |            |
+        |        |            |
+        |        |            |
+        |        |            |
+        |        |            |
+        |       \|/           |
+        |                     |
+        |                     |
+        |                     |
+        |       Free          |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |                     |
+        |       /|\           |
+        |        |            |
+        |        |            |
+        |        |            |
+        |        |            |
+        |        |            |
+        -----------------------
+        |                     |
+        |      Stack          |
+        |                     |
+        -----------------------
+
+and process address space with 2 threads looks like below:
+        _______________________
+        |                     |
+        |                     |
+        |   Program Code      |
+        |                     |
+        |                     |
+        ----------------------
+        |                     |
+        |                     |
+        |      Heap           |
+        |                     |
+        |                     |
+        -----------------------
+        |        |            |
+        |        |            |
+        |        |            |
+        |        |            |
+        |       \|/           |
+        |                     |
+        |      Free           |
+        |                     |
+        |                     |
+        |       /|\           |
+        |        |            |
+        |        |            |
+        -----------------------
+        |                     |
+        |      Stack2         |
+        |                     |
+        -----------------------
+        |                     |
+        |       Free          |
+        |                     |
+        -----------------------
+        |                     |
+        |      Stack1         |
+        |                     |
+        -----------------------
+
+Now, coming back to the original issue, why we dont have output as 2000000000.
+
+Lets disassemble the code of this program to see the assembly of 'func'.
+
+[ ] gcc -g counter.c -lpthread -o counter
+[ ] objdump -d counter
+
+mov    0x2e50,%eax
+add    $0x1,%eax
+mov    %eax,0x2e50
+
+Here, assume that initially global variable 'counter' (at address 0x2e50) has
+value 0.
+Now, When the first thread was executing this code, it feteched the data from
+global variable (address 0x2e50) and stored in the register 'eax' and before it
+could add '1' and store back in the same address, OS switched to another thread.
+Since the address '0x2e50' still contains the value 0, it takes 0 and adds 1 to
+it, and store it back to the memory.Now after this the execution goes back to
+the old thread, and that thread also just writes the value 1 to the address.
+
+Hence, here, even though the addition has happend twice by 2 threads, but after
+both the executions, the final value of the 'counter' is just 1 (instead of 2).
+
+If it keep happening multiple time with multiple switches of threads in this
+process, we will see the final count lesser than the expected value
+'2000000000'.
