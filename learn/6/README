@@ -1,0 +1,64 @@
+Condition variables issue in multithreading:
+-------------------------------------------
+
+The condition variable is a problem arise when a mutex lock is used between
+multiple threads and at some moment, one thread waits for the lock and other
+waits for a variable to get a specific value (which can be done only when it has
+the same lock). Its a kind of deadlock situation, where both the threads are
+stuck in execution.
+
+Lets take an example (condition_variable_problem.c).
+
+Suppose there is a global variable 'flag', which is accessed by two threads T1
+and T2.
+
+At staring, this flag is FALSE.
+    - T1 is just looking for this flag to become TRUE(1) to proceed with its
+      job.
+
+    - T2 is responsible to make this flag as TRUE (1).
+
+When the program starts, and both the threads are created, lets assume that
+execution first goes in the T1 (its not mandatory, as it all depends on OS
+thread scheduling, that which threads it will execute first, but with a sleep
+after first thread creation, we are fooling OS to start the T1 first).
+
+Once T1 is created, we have two threads now, 'T1' and the 'main thread'.
+Due to sleep in the 'main thread', execution goes in the T1 first, T1 takes the
+lock and keep waiting for the flag to become TRUE(1).
+
+At some time context switch happens and execution goes to the 'main thread', and
+now 'main thread' creates another thread (T2).
+
+Once the execution reaches the T2 thread, it waits for the lock to be released,
+because lock has been already taken by the thread T1.
+
+Now, if the execution switches to the thread T1, here code is not releasing
+the lock, because flag is not 1 (TRUE).
+
+Meaning, thread T1 can't release the lock before the flag becomes TRUE, and
+thread T2 can't make the flag TRUE, until the lock is released.
+
+Here, Both the threads are blocked, and can't proceed. 
+
+This situation is called an issue of condition variable in multithreaded
+programs.
+
+If you try compile and run this program, you will see the below output:
+
+[ ] gcc condition_variable_problem.c -lpthread
+[ ] ./a.out 
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+T2 : Trying to take the lock.
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+T1 : Waiting for flag to become TRUE.
+
+See, in the above output, first execution goes in the T1, and waits for flag to
+become TRUE, and then once the execution goes to T2, it just starts waiting for
+the lock with 'pthead_mutex_lock' call, and not coming out as T1 never releases
+the lock and T2 is just waiting for flag to become TRUE to release the lock.
