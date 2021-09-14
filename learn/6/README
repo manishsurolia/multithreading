@@ -39,7 +39,7 @@ the lock, because flag is not 1 (TRUE).
 Meaning, thread T1 can't release the lock before the flag becomes TRUE, and
 thread T2 can't make the flag TRUE, until the lock is released.
 
-Here, Both the threads are blocked, and can't proceed. 
+Here, Both the threads are blocked, and can't proceed.
 
 This situation is called an issue of condition variable in multithreaded
 programs.
@@ -47,7 +47,7 @@ programs.
 If you try compile and run this program, you will see the below output:
 
 [ ] gcc condition_variable_problem.c -lpthread
-[ ] ./a.out 
+[ ] ./a.out
 T1 : Waiting for flag to become TRUE.
 T1 : Waiting for flag to become TRUE.
 T2 : Trying to take the lock.
@@ -62,3 +62,41 @@ See, in the above output, first execution goes in the T1, and waits for flag to
 become TRUE, and then once the execution goes to T2, it just starts waiting for
 the lock with 'pthead_mutex_lock' call, and not coming out as T1 never releases
 the lock and T2 is just waiting for flag to become TRUE to release the lock.
+
+Solution with thread API's:
+---------------------------
+
+To solve the above issue, POSIX thread API's provide below api's.
+
+    1. pthread_cond_wait
+    2. pthread_cond_signal
+
+Here, in this example, when T1 has first taken the lock and waiting for flag to
+become TRUE, other threads can not take this lock, and hence, cant make the flag
+as TRUE.
+
+To solve this issue, just after checking the flag in the while loop, we can use
+the thread api, 'pthread_cond_wait', which puts the thread in sleep state and
+release the lock for others to take it, and make the changes to the 'flag'.
+
+This thread gets back to the running state only when other thread release the
+lock and sends back a signal. At this point T1 get the lock again, goes back to
+the loop condition, and see whether the 'flag' has become TRUE or not.
+
+If its true, it comes out of the loop and does its operation.
+
+In the other thread (T2), when it was waiting for the lock, it gets the lock
+because 'pthread_cond_wait' made T1 to sleep and freed the lock. Now, once T2
+gets the lock, it changes the value of the flag as 'TRUE', release the lock
+and sends back the signal (using pthread_cond_signal) to the thread(T1), who
+sent the wait notification.
+
+This way, we can avoid the deadlock occurred due to mutex and condition
+variable.
+
+[ ] gcc condition_variable_solution.c -lpthread
+[ ] ./a.out
+T1 : Waiting for flag to become TRUE.
+T2 : Trying to take the lock.
+T2 : Got the lock. Making flag as TRUE.
+T1 : Processing done.
