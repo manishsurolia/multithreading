@@ -1,0 +1,17 @@
+This particular example takes any number of threads, and starts incrementing
+the global counter by each thread 10000000 times.
+
+Means, if we start 15 threads, the final value of counter should be :
+
+    = 15 * 10000000 = 150000000
+
+Also, it shows how much time it took for completing all the threads.
+You can see that with more number of threads, the time taken is also increased.
+
+You can also change the number of cores in the machine, and see how it impacts
+the total time taken for all the threads.
+
+[ ] gcc counter.c -lpthread
+[ ] ./a.out
+How many threads, do you want to create? 10
+counter = 100000000, in 2502 milli-seconds
