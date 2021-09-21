@@ -73,3 +73,31 @@ get stuck in the while loop until this thread frees the lock by calling
 [ ] gcc lock.c -lpthread
 [ ] ./a.out
 Final value of counter : 40000000
+
+
+Spin-lock performance: For a system with single processor, spin-lock can be
+---------------------  very waste-full in terms of program speed.
+
+Assume that there are four threads running on a single processor and all of them
+run some critical section locked with a common lock.
+
+Now, assume that one thread(T1) has acquired the lock and executing the critical
+section code, at this same time, OS switches to the other thread(T2) and now
+thread T2 tries to take the same lock and wastes some CPU time in the loop in
+order to get the lock, but since the lock has already been taken by the T1, T2
+keeps waiting, and after some time OS again switches to another thread T3. Here
+also, its the same thing as T2, it keeps waiting for some to acquire lock, and
+then OS switches to T4. Here also, the same thing as T2 and T3, because the lock
+is held by T1, which is inside its critical section.
+
+This wastes a lot of CPU cycle because all the threads are running on a single
+core. When threads wait for the lock, T1 can not execute the critical section
+code to release the lock soon.
+Means, multiple threads operating with a common lock on a single thread wastes
+a lot of CPU cycles.
+
+Now, assume that we have 4 threads and 4 CPUs and each of the thread executes
+on separate CPU. In this case, the wait by other threads(T2, T3, T4) and the
+execution of the critical section by T1 is happening on different CPUs. Hence,
+the execution of T1 is not blocked by T2, T3 and T4 waiting and the program
+progress faster compare the single processor.
