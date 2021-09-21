@@ -5,6 +5,16 @@ The purpose of this program to create our own lock Mechanism to protect any
 critical section from getting executed by multiple threads
 non-deterministically.
 
+------------------------------------------------------------------------------
+Note: The below lock mechanism example has been written with 2 threads. Hence,
+if your system has at least 2 cores, you will easily be able to understand this
+and also see the issues with this implementation because two threads run in
+parallel on different cores. But if you have only 1 core, there may be less
+switching between threads and you might not be able to realize the whole
+program without a very big increment counter for each thread to make more
+lock contentions between threads.
+------------------------------------------------------------------------------
+
 To create our own lock Mechanism, lets use a global variable as a lock to
 protect critical sections.
 
