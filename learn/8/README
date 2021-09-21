@@ -1,9 +1,15 @@
 Creating our own lock Mechanism:
 ------------------------------
 
-The purpose of this program to create our own lock Mechanism to protect any
+The purpose of this program to create our own spin-lock Mechanism to protect any
 critical section from getting executed by multiple threads
 non-deterministically.
+
+spin-lock : A spinlock is a lock which causes a thread trying to acquire it to
+simply wait in a loop ("spin") while repeatedly checking if the lock is
+available. Since the thread remains active but is not performing a useful task,
+the use of such a lock is a kind of busy waiting. Once acquired, spinlocks will
+usually be held until they are explicitly released.
 
 ------------------------------------------------------------------------------
 Note: The below lock mechanism example has been written with 2 threads. Hence,
