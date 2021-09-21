@@ -1,0 +1,18 @@
+priority inversion and priority inheritance:
+-------------------------------------------
+
+Let’s assume there are two threads in a system, T1 and T2. Thread T2 has a high
+scheduling priority, and Thread T1 has lower priority. Let’s assume that the CPU
+scheduler will always run T2 over T1, if indeed both are runnable; T1 only runs
+when T2 is not able to do so (e.g., when T2 is blocked on I/O).
+
+Assume T2 is blocked for some reason. So T1 runs, grabs a spin lock, and enters
+a critical section. T2 now becomes unblocked (perhaps because an I/O completed),
+and the CPU scheduler immediately schedules it (thus descheduling T1). T2 now
+tries to acquire the lock, and because it can’t (T1 holds the lock), it just
+keeps spinning. Because the lock is a spin lock, T2 spins forever, and the
+system is hung.
+
+A a higher-priority thread waiting for a lower-priority thread can temporarily
+boost the lower thread’s priority, thus enabling it to run and overcoming the
+inversion, a technique known as "priority inheritance".
