@@ -1,0 +1,53 @@
+Problem : With multiple threads in a process, if one thread holds the lock, and
+others just get spinning to aquire the lock.
+
+Spin-lock performance: For a system with single processor, spin-lock can be
+---------------------  very waste-full in terms of program speed.
+
+Assume that there are four threads running on a single processor and all of them
+run some critical section locked with a common lock.
+
+Now, assume that one thread(T1) has acquired the lock and executing the critical
+section code, at this same time, OS switches to the other thread(T2) and now
+thread T2 tries to take the same lock and wastes some CPU time in the loop in
+order to get the lock, but since the lock has already been taken by the T1, T2
+keeps waiting, and after some time OS again switches to another thread T3. Here
+also, its the same thing as T2, it keeps waiting for some to acquire lock, and
+then OS switches to T4. Here also, the same thing as T2 and T3, because the lock
+is held by T1, which is inside its critical section.
+
+This wastes a lot of CPU cycle because all the threads are running on a single
+core. When threads wait for the lock, T1 can not execute the critical section
+code to release the lock soon.
+Means, multiple threads operating with a common lock on a single thread wastes
+a lot of CPU cycles.
+
+Now, assume that we have 4 threads and 4 CPUs and each of the thread executes
+on separate CPU. In this case, the wait by other threads(T2, T3, T4) and the
+execution of the critical section by T1 is happening on different CPUs. Hence,
+the execution of T1 is not blocked by T2, T3 and T4 waiting and the program
+progress faster compare the single processor.
+
+Solution:
+--------
+
+If a thread does not get the lock, it can simply 'yield' the processor for
+other threads to execute.
+
+Its a very simple approach, where instead of spinning for infinite time, thread
+itself yield the CPU so that other thread can execute, complete the critical
+section and release the lock. Then later this thread can take the lock and run
+in the critical section.
+
+Below can be a simple lock implementation for the same.
+
+void lock() {
+    while (TestAndSet(&flag, 1) == 1)
+        yield(); // give up the CPU
+}
+
+Here, the lock has been implemented using 'Test-and-Set' approach, and if in
+the first attempt itself, thread does not come out of the while loop, it yield
+the CPU, moving from 'running' state to 'ready' state voluntarily,
+'de-schedules' itself. With this, scheduler moves to another thread and come
+back to it later.
