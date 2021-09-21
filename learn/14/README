@@ -1,0 +1,46 @@
+This example tries to build a counter between multiple threads.
+Assume that there is a global counter variable, which is incremented by
+1000000000 (one billion) times by each of the thread.
+
+If there is one thread in the program, and if it takes X time to complete this,
+then with two threads on two CPU's, it should take approximately the same time.
+
+If 2 threads (each updating the counter 1000000000 times), take a lot more time
+when executing on 2 CPU's , compare to the one thread executing on 1 CPU, then
+its not scalable. Means, adding more CPU and making the program multi-threaded
+to execute the program faster, is not serving the purpose.
+
+Please refer the program counter.c. Here, we have a global counter structure,
+which contains the counter value and the lock for it.
+
+There is function 'increment' written to increment this global counter and this
+function is executed by multiple threads.
+
+Finally, there is a time calculation done before and after the execution of all
+the threads.
+
+Lets compile and execute the program to see the result.
+
+[ ] gcc counter.c -lpthread
+[ ] ./a.out
+How many threads you want to create? 1
+Final value of counter : 1000000000 in 16544 milli-seconds.
+
+[ ] ./a.out
+How many threads you want to create? 2
+Final value of counter : 2000000000 in 84911 milli-seconds.
+
+The above output is telling that 2 threads are taking almost 5 times than one
+thread, when we have 4 cores in our computer system. We are assuming that OS
+runs each thread on different CPU.
+
+Conclusion: This counter increment by multiple threads is not a scalable
+----------  solution. If just adding an extra thread is causing the process to
+            complete the task in 5 times more time, then think of the scale
+            scenario.
+
+Reason: One possible and very obvious reason of this drastic increase in time
+------  time taken by multiple threads is that, even though each of the thread
+        is running on multiple CPU's but in actual each thread is always
+        involved in the lock contention with the other thread, because without
+        taking the lock, none of these threads can execute the critical section.
