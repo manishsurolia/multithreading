@@ -1,0 +1,112 @@
+Creating our own lock Mechanism:
+------------------------------
+
+The purpose of this program to create our own lock Mechanism to protect any
+critical section from getting executed by multiple threads
+non-deterministically.
+
+To create our own lock Mechanism, lets use a global variable as a lock to
+protect critical sections.
+
+Lets call this global variable as 'lock', and defined as below:
+
+unsigned int lock; // Defined globally, each thread can access it.
+
+This variable 'lock' can have only 2 values as below:
+
+    0 (FREE)
+    1 (ACQUIRED).
+
+Initially(before starting any of the threads), we make the value of this lock
+as 0(FREE). It is called initialization of the lock.
+
+There are two functions written on top of this, (1) my_lock (2) my_unlock.
+
+The definition of 'my_lock' is simple. It waits in a loop until the value of the
+lock is 0(FREE). Until then it just goes in a infinite while loop.
+It comes out only when the lock is 0(FREE).
+
+/* Return only when you get the lock, otherwise keep waiting for the lock. */
+void my_lock(int *p, char *str)
+{
+    /* Loop, until the lock is not free. */
+    while(*p) {
+        printf("%s : Waiting for the lock\n", str);
+    }
+
+    printf("%s : Acquired the lock\n", (char *) str);
+    *p = 1;
+}
+
+The definition of 'my_unlock' is also simple. It just makes the value of lock
+as FREE(0), so that other threads can use this lock.
+
+/* Make the lock free and come out */
+void my_unlock(int *p, char *str)
+{
+    *p = 0;
+    printf("%s : Released the lock\n", str);
+}
+
+Any thread needs to call 'my_lock' before entering the critical section, and
+need to release the lock by calling 'my_unlock' function.
+
+Let's assume that our main thread starts two more threads, T1 and T2.
+Both of the threads are supposed to increment a global counter 100000 times.
+Hence, after proper execution of each of the threads, the value of the global
+counter should be 200000.
+
+To synchronize for the critical section, each thread tries to take the lock by
+calling function 'my_lock' and when the critical section code execution is done
+for this thread, it will release the lock by calling 'my_unlock' function so
+that other threads can take the same lock to execute critical section.
+
+Please go through the code in file 'lock.c' to understand the implementation.
+Its quite basic and simple.
+
+Lets compile and run the code now.
+[ ] gcc lock.c -lpthread
+[ ] ./a.out > logs.txt
+
+Lets see the last line of the file logs.txt to check the final value.
+
+[ ] tail -n 1 logs.txt
+Final value of counter : 199416
+
+Here, you can see that our lock is not working fine, when both threads are
+incrementing the counter 100000 times.
+
+The reason is that, when one thread goes for acquiring the lock
+(calling 'my_lock'), 'my_lock' function finds that the value of the lock is
+0(FREE), and proceeds to make it as 1(Acquired). But before it could update the
+lock with value 1(Acquired), OS switches to another thread and that thread also
+finds the value of the lock as 0(FREE) and this thread also proceeds to make the
+lock as 1 (Acquired).
+
+In this situation both the threads are executing the critical section together
+as both of them have the lock. This situation is as good as *NOT* having any
+lock. Hence, we have the same old problem(see earlier example in directory
+number 4). It happens that at some point of time, both the threads get the same
+value of the global counter, increment by one and update to the global counter
+and puts the same count 2 times. Hence we get less incremented value at the end.
+
+It may work fine when this increment count is less for each thread, because
+there will be less switching between threads, but with each threads incrementing
+the global counter so many times(like 100000), there are lots of switches
+between the threads and we see wrong result at the end.
+
+If we see the complete logs.txt file, we will find logs as below:
+
+T2 : Released the lock
+T2 : Acquired the lock
+T2 : Released the lock
+T2 : Acquired the lock
+T2 : Released the lock
+T2 : Acquired the lock
+T2 : Released the lock
+T2 : Acquired the lock <-- T2 Acquired the lock.
+T1 : Acquired the lock <-- T1 also Acquired the lock, without T2 releasing it.
+T1 : Released the lock
+T1 : Acquired the lock
+T1 : Released the lock
+T1 : Acquired the lock
