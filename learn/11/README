@@ -1,0 +1,29 @@
+Load-Linked and Store-Conditional:
+----------------------------------
+
+This is an interesting way to achieve lock mechanism, and provided by some
+platforms.
+
+LL/SC instructions are supported by:
+-----------------------------------
+
+Alpha: ldl_l/stl_c and ldq_l/stq_c
+PowerPC/Power ISA: lwarx/stwcx and ldarx/stdcx
+MIPS: ll/sc
+ARM: ldrex/strex (ARMv6 and v7), and ldxr/stxr (ARM version 8)
+RISC-V: lr/sc
+ARC: LLOCK/SCOND
+
+With this approach, hardware provides us a pair of instructions.
+1. First is for fetching the value at some address. (Called Load).
+2. Second is to store the value at some address. (Called Store).
+
+The special thing about this pair of instructions is that, if there is any
+update(store) to the memory after fetch(load) has happened, the store will fail.
+
+Now, we can think about how to build a spin-lock using these instructions.
+Again, we need to write some inline assembly to use the instruction in our code
+to use these instructions for our lock mechanism.
+
+A very good Wiki page written on this:
+https://en.wikipedia.org/wiki/Load-link/store-conditional
