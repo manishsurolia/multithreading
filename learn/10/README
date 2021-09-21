@@ -1,0 +1,71 @@
+Compare-and-swap locks:
+----------------------
+
+This is another way of implementing a spin-lock.
+
+compare-and-swap (CAS) is an atomic instruction used in multithreading to
+achieve synchronization. It compares the contents of a memory location with a
+given value and, only if they are the same, modifies the contents of that memory
+location to a new given value. This is done as a single atomic operation. The
+atomicity guarantees that the new value is calculated based on up-to-date
+information; if the value had been updated by another thread in the meantime,
+the write would fail.
+
+The basic logic of compare-and-swap is as below.
+
+int CompareAndSwap(int *ptr, int expected, int new) {
+    int original = *ptr;
+
+    if (original == expected)
+        *ptr = new;
+
+    return original;
+}
+
+Note : The above 'CompareAndSwap' C code has been written just to show the
+logic. We need to make this whole logic atomic (may be using inline assembly) to
+achieve proper mutual exclusion, otherwise again OS can preempt the execution
+of a thread inside this function and we will not be able to achieve a proper
+lock mechanism.
+
+GCC compiler already provides a CAS function (__sync_val_compare_and_swap). We
+can use it to build our spin lock.
+
+We can use this GCC in-build function to make our lock as below:
+
+/*
+ * Return only when you get the lock, otherwise keep waiting for the lock.
+ */
+void my_lock(int *p)
+{
+    /* Loop, until the lock is not free. */
+    while(__sync_val_compare_and_swap (p, 0, 1) != 0);
+    return;
+}
+
+This above logic is quite simple. Until it gets the value 0 from CAS function,
+it keeps calling it (similar as our last implementation).
+
+For further studies in this, we can try to write our own 'compare_and_swap'
+function in atomic fashion. For that we need to write the same in inline
+assmebly code. Below is just a sample implementation for this. We can further
+explore on how this works.
+
+inline int CAS(unsigned long *mem,unsigned long newval,unsigned long oldval)
+{
+    __typeof (*mem) ret;
+    __asm __volatile ("lock; cmpxchgl %2, %1"
+    : "=a" (ret), "=m" (*mem)
+    : "r" (newval), "m" (*mem), "0" (oldval));
+    return (int) ret;
+} 
+
+Lets compile and execute this program.
+
+[ ] gcc lock.c -lpthread
+[ ] ./a.out 
+Final value of counter : 400000000
+
+Sometimes I see a wrong final output. For example : 399999997 (not 400000000).
+Need to debug this, as I am not sure if my lock implementation is wrong or
+something else.
