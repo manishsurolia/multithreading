@@ -1,0 +1,75 @@
+Improving our lock Mechanism:
+------------------------------
+
+The purpose of this program is to overcome the problem we faced in last example,
+where the lock was not able to provide mutual exclusion between multiple
+threads due to lack of atomicity of the 'lock value fetch' and 'update' in the
+'my_lock' function.
+
+------------------------------------------------------------------------------
+Note: This lock mechanism improvement code has been written with 4 threads to
+test the lock better. Hence, please run this example on a device with 4 or more
+cores. Less number of cores also works fine, but the lock contention is lesser.
+------------------------------------------------------------------------------
+
+Below was the code to acquire lock in previous example,
+
+/*
+ * Return only when you get the lock, otherwise keep waiting for the lock.
+ */
+void my_lock(int *p, char *str)
+{
+    /* Loop, until the lock is not free. */
+    while(*p) {
+        printf("%s : Waiting for the lock\n", str);
+    }
+
+    printf("%s : Acquired the lock\n", (char *) str);
+    *p = 1;
+}
+
+The problem with this function is that, the fetching of the value of lock, which
+is 'while(*p)' statement and the update of the value of lock, which is
+'*p = 1;', is not atomic, and OS switches between the threads between these two
+operations of a thread.
+
+If we can make these 2 operations atomic, we can solve the above issue.
+
+To solve this issue in our 'spin lock', we can use the method of 'Test-and-set'.
+
+Test-and-set : The test-and-set instruction is an instruction used to write
+(set) 1 to a memory location and return its old value as a single atomic
+(i.e., non-interruptible) operation.
+
+Below is our 'my_lock' function re-written to make the test-and-set atomic.
+
+void my_lock(int *p)
+{
+    int val = 1;
+
+    /* Loop, until the lock is not free. */
+    do {
+        __asm__ volatile("xchg %0, %1" : "+q" (val), "+m" (*p));
+    } while(val);
+
+    return;
+}
+
+Here, the logic is simple. We are just exchanging the value of the '*p' and
+'val' in an atomic operation.
+
+Lets assume that when first thread starts to execute this, it just gets the
+current value at memory of 'p' and just puts the value 1 to it.
+Then, in the loop it checks whether that fetched value from *p was 0 or 1.
+
+If its still 1, it has to again go in the loop.
+If its 0, that means earlier the lock had the value 0(FREE), but now, has been
+made to 1(ACQUIRED) and now the lock is with this thread. Hence, it returns.
+
+When other threads try to take this lock with the same method 'my_lock', they
+get stuck in the while loop until this thread frees the lock by calling
+'my_unlock'.
+
+[ ] gcc lock.c -lpthread
+[ ] ./a.out
+Final value of counter : 40000000
