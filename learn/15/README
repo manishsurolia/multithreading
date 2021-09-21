@@ -1,0 +1,48 @@
+This program just tries to solve the problem we saw with non-scalable counters,
+where each thread was almost always contending for the lock, and resulting in
+huge time increase with each new thread being added.
+
+The approach in this program is to just keep a local counter with each of the
+thread and always increment the value of that local counter. When a thread is
+done with the counter increment then it just takes the lock on the global
+counter only once, and then just updates the value of the counter.
+
+This way, all the threads are running of different CPU's and trying to take the
+lock only once, hence resulting in very very less lock contention, and hence
+improving the speed of the program.
+
+Lets compile and execute the program to see the difference in total time taken
+with number of threads increase.
+
+[ ] gcc counter.c -lpthread
+[ ] ./a.out
+How many threads you want to create? 1
+Final value of counter : 1000000000 in 2130 milli-seconds.
+[ ] ./a.out
+How many threads you want to create? 2
+Final value of counter : 2000000000 in 2107 milli-seconds.
+[ ] ./a.out
+How many threads you want to create? 3
+Final value of counter : 3000000000 in 2114 milli-seconds.
+[ ] ./a.out
+How many threads you want to create? 4
+Final value of counter : 4000000000 in 2331 milli-seconds.
+
+Here, we have a very minimum increase in the time consumption with increase in
+the number of threads.
+
+Here, Each thread is executing on a different CPU, as we have 4 CPU's in our
+system.
+
+If we take more threads than 4, then more than one threads will be executing on a
+CPU, that will also cause some delay, but that drastic.
+
+[ ] ./a.out
+How many threads you want to create? 5
+Final value of counter : 5000000000 in 2947 milli-seconds.
+[ ] ./a.out
+How many threads you want to create? 6
+Final value of counter : 6000000000 in 3589 milli-seconds.
+[ ] ./a.out
+How many threads you want to create? 7
+Final value of counter : 7000000000 in 3886 milli-seconds.
