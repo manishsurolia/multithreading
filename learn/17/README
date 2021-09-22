@@ -1,0 +1,58 @@
+This example is to show how we can write concurrent Queues. Means, Queues
+which can support multiple threads at same time (thread safe).
+
+This implementation provides majorly 3 queue functions:
+
+1. enqueue
+2. dequeue
+3. print - Queue printing
+
+
+There are three files present for this example.
+
+queue.c : This has all the implementation for the queue.
+queue.h : Queue specific data structure and function declarations.
+test.c : This file makes use of the functions defined in queue.c
+
+The test logic has been written in such a way that each thread enqueues 100 nodes
+in the queue and then dequeue all the 100 nodes again.
+
+Also, we can create as many threads as we want.
+
+Since each thread create and delete all the nodes, there should not be any nodes
+in the list at the end of the test program.
+
+This program also shows the total time taken for all the threads to create and
+remove the nodes.
+
+[ ] gcc queue.c test.c -lpthread
+[ ] ./a.out
+How many threads you want to create? 10
+Time Taken : 1822093 nano-seconds.
+Queue :
+
+You can change this test program for queue for test the queue implementation
+for more cases.
+
+Notes:
+------
+
+1. Note that this concurrent queue has been implemented such that, a dummy node
+   is always present at the HEAD of the list. This dummy node is added as part
+   of queue initialization.
+
+2. Also, we have used 2 locks ('head_lock' and 'tail_lock') for the queue
+   implementation instead of a single lock, because of below reasons.
+
+In a queue,
+    - enqueue always adds a node in the HEAD of the Queue.
+    - dequeue always deletes a node from the TAIL of the queue.
+    - There can not be a chance where dequeue goes for a delete node and its
+      already delete from other side, because delete is only in one side.
+    - There is no contention when a node is added, because a dummy head is
+      always present.
+    - Taking 2 locks makes the queue faster with multiple threads adding and
+      removing the nodes from the queue. One does not need to hold the whole
+      queue for just an addition or deletion of the node. Means, multiple
+      threads can independently execute enqueue and dequeue on the same list,
+      which make the program faster.
