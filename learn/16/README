@@ -1,0 +1,50 @@
+This example is to write how we can write concurrent link lists. Means, lists
+which can support multiple threads at same time (thread safe).
+
+This implementation provides majorly 3 list functions:
+
+1. add_node
+2. delete_node
+3. print - list printing
+
+
+There are 2 files present for this example.
+
+list.c : This has all the implementation for the list.
+list.h : List specific data structure and function declarations.
+test.c : This file makes use of the functions defined in list.c
+
+The test logic has been written in such a way that each thread creates 10 nodes
+in the link list and then destroys all the 10 nodes again.
+
+Also, we can create as many threads as we want.
+
+Since each thread create and delete all the nodes, there should not be any nodes
+in the list at the end of the test program.
+
+This program also shows the total time taken for all the threads to crate and
+remove the nodes.
+
+[ ] gcc list.c test.c -lpthread
+[ ] ./a.out 
+How many threads you want to create? 100
+Time Taken : 5318972 nano-seconds.
+List :
+
+
+
+Notes:
+------
+
+1. Note that, we have kept 'malloc' out of any 'lock' and 'unlock'. Please refer
+'add_node' function of the list implementation. Hence, there is no exit path
+between 'lock' and 'unlock'. If there is any exit path between these two calls,
+it may lead to hung state, as one thread will be just take the lock and return
+from exit path without releasing the lock and other will just starve to get the
+lock, leading to deadlock.
+
+2. There is no return between 'lock' and 'unlock'. Please refer 'delete_node'.
+Here, instead of just returning from the function after node delete, I have used
+the break operation, so that it properly releases the lock and then comes out.
+
+
