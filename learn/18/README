@@ -1,0 +1,209 @@
+Snippet from a online discussion,
+
+https://stackoverflow.com/questions/1525189/do-i-need-a-mutex-for-reading
+
+Question : Do I need a mutex for reading?
+-----------------------------------------
+
+Answer : On most modern CPU's, reading an integer is an atomic operation, which
+-----    means that you will always read a consistent value, even without a
+         mutex.
+
+        However, without a mutex, or some other form of synchronization, the
+        compiler and CPU are free to reorder reads and writes, so anything more
+        complex, anything involving accessing multiple variables, is still
+        unsafe in the general case.
+
+        Assuming the writer thread updates some data, and then sets an integer
+        flag to inform other threads that data is available, this could be
+        reordered so the flag is set before updating the data. Unless you use a
+        mutex or another form of memory barrier.
+
+        So if you want correct behavior, you don't need a mutex as such, and
+        it's no problem if another thread writes to the variable while you're
+        reading it. It'll be atomic unless you're working on a very unusual CPU.
+        But you do need a memory barrier of some kind to prevent reordering in
+        the compiler or CPU.
+
+Let's take an example to see how write and read happens between two threads.
+We have two functions in a c file, 'set' and 'get.
+
+[ ] cat test.c
+unsigned int var = 0;
+
+void set(void)
+{
+    var += 10;
+}
+
+unsigned int get (void)
+{
+    return var;
+}
+
+There is no 'main' function or header inclusion as we are just looking for the
+generated assembly.
+
+Let's compile it and stop the compilation after object file creation as below:
+
+[ ] gcc -c -O0 test.c
+[ ] objdump --disassemble test.o
+
+Disassembly of section .text:
+
+0000000000000000 <set>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	55                   	push   %rbp
+   5:	48 89 e5             	mov    %rsp,%rbp
+   8:	8b 05 00 00 00 00    	mov    0x0(%rip),%eax  <-- Fetching the data from memory location to a register 'eax'.
+   e:	83 c0 0a             	add    $0xa,%eax       <-- Write to the register 'eax'. Adding 10 to it.
+  11:	89 05 00 00 00 00    	mov    %eax,0x0(%rip)  <-- Store this register value back to the same memory location.
+  17:	90                   	nop
+  18:	5d                   	pop    %rbp
+  19:	c3                   	retq
+
+000000000000001a <get>:
+  1a:	f3 0f 1e fa          	endbr64
+  1e:	55                   	push   %rbp
+  1f:	48 89 e5             	mov    %rsp,%rbp
+  22:	8b 05 00 00 00 00    	mov    0x0(%rip),%eax  <-- Just fetching the data from memory location.
+  28:	5d                   	pop    %rbp
+  29:	c3                   	retq
+
+
+Here, you can see that write to a memory location has 3 actions.
+
+1. Fetch
+2. Write
+3. Store
+
+Important note : All of these instructions are atomic in nature. Means, if the
+fetch instruction is fetching data from a memory location to a register, we can
+assume below things.
+
+1. It can't be preempted by OS, so it will run to complete.
+2. If there are more cores in our CPU (which is normal now a days), and trying
+to access the data from the same memory address, that can't be done because
+hardware allows only one processor to access a memory location at a time. This
+way also, its atomic. For more details, we can refer this discussion,
+https://stackoverflow.com/questions/516940/can-multiple-cpus-simultaneously-write-to-the-same-ram-location
+
+Read Operation:
+--------------
+
+So, with this knowledge, we can see that with read operation ('get' function),
+its only one instruction, and that is also atomic. Means it may not happen that
+while this instruction is getting executed in one core, some other threads on
+some other core will write to the same memory location and we will get some
+wrong (inconsistent) value. Even if there are more threads of multiple cores
+contending to read/write on the same memory location, hardware will allow only
+one CPU to do the operation in atomic nature. The other will wait until the
+first one has finished. That means, that we will either read before the other
+contending instruction on the same memory or after that. But no in-between read.
+Hence, we don't need a lock for read operation on global shared memory.
+
+Exception : However, without a mutex, or some other form of synchronization, the
+compiler and CPU are free to reorder reads and writes, so anything more complex,
+anything involving accessing multiple variables, is still unsafe in the general
+case. Assuming the writer thread updates some data, and then sets an integer
+flag to inform other threads that data is available, this could be reordered so
+the flag is set before updating the data. Unless you use a mutex or another form
+of memory barrier.
+
+Hence, if you have such scenario as mentioned above, where one thread not only
+reads the flag value updated by other thread but also operate on some other
+data provided by the other thread, you need to make sure that the flag was set
+only after the data was updated, because reordering can happen due to compiler
+optimization. Be careful with such operations. In such cases, we might need to
+use a lock.
+
+Write Operation:
+----------------
+
+As you can see in the above assembly for set function, the write operation
+happens in the 3 steps, (1) fetch, (2) write (3) store.
+
+Question : Do we need a lock, if we just have a writer thread and a reader
+--------   thread??
+
+Lets try to find the answer.
+
+Assume that the shared global data has the value 0.
+
+Writer thread is supposed to execute below,
+
+mov    0x0(%rip),%eax  <-- Writer's Fetch.
+add    $0xa,%eax       <-- Writer's Write.
+mov    %eax,0x0(%rip)  <-- Writer's Store.
+
+and reader thread is supposed to execute below:
+
+mov    0x0(%rip),%eax  <-- Reader's fetch.
+
+While executing the two threads(writer and reader), we have below four possible
+combinations, as OS can switch between the threads anytime based on its
+scheduling mechanism or both threads might be running in parallel in different
+CPU cores.
+
+Below has been shown for 2 threads getting executed in a single processor.
+
+Case 1:
+------
+
+mov    0x0(%rip),%eax  <-- Reader's fetch.
+mov    0x0(%rip),%eax  <-- Writer's Fetch.
+add    $0xa,%eax       <-- Writer's Write.
+mov    %eax,0x0(%rip)  <-- Writer's Store.
+
+Reader will get the value as 0 and no impact on the writer's fetch as the
+fetch has not yet done for writer.
+
+Case 2:
+------
+
+mov    0x0(%rip),%eax  <-- Writer's Fetch.
+mov    0x0(%rip),%eax  <-- Reader's fetch.
+add    $0xa,%eax       <-- Writer's Write.
+mov    %eax,0x0(%rip)  <-- Writer's Store.
+
+Reader will get the value as 0 and no impact on the writer's operation as
+whatever writer fetched, is still the same in the memory. There is nothing has
+been written to the memory, from where it fetched the data.
+
+Case 3:
+------
+
+mov    0x0(%rip),%eax  <-- Writer's Fetch.
+add    $0xa,%eax       <-- Writer's Write.
+mov    0x0(%rip),%eax  <-- Reader's fetch.
+mov    %eax,0x0(%rip)  <-- Writer's Store.
+
+Reader will get the value as 0 and no impact on the writer's operation as
+whatever writer fetched, is still the same in the memory. There is nothing has
+been written to the memory, from where it fetched the data.
+
+Case 4:
+------
+
+mov    0x0(%rip),%eax  <-- Writer's Fetch.
+add    $0xa,%eax       <-- Writer's Write.
+mov    %eax,0x0(%rip)  <-- Writer's Store.
+mov    0x0(%rip),%eax  <-- Reader's fetch.
+
+Reader will get the value as 10 and no impact on the writer's operation because
+writer's work is done before reader's fetch.
+
+Conclusion : if there is only one writer and one reader thread for a global
+shared data, we don't need to take any lock, as it does not impact writer and
+also does not provide any in-consistent value to the reader thread.
+
+Means,
+    - Reader does not need a lock(there is an exception, see above).
+
+    - Writer does not need a lock, if that is the only writer for this global
+      share data, because there is not other writer which is going to impact
+      his write.
+
+    - If there are multiple writers on the same global shared data, we surely
+      need a lock mechanism, because otherwise, one writer can impact the
+      other's write operation, and we will get inconsistent results.
