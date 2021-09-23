@@ -1,0 +1,7 @@
+This program is to show how to use an arrary buffer between two threads.
+
+Currenly this implementation has some issues, need to fix.
+
+Note : Dont just take this example as it is, it needs some fixes.
+
+
