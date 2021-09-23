@@ -100,3 +100,29 @@ T1 : Waiting for flag to become TRUE.
 T2 : Trying to take the lock.
 T2 : Got the lock. Making flag as TRUE.
 T1 : Processing done.
+
+Notes:
+-----
+
+1. 'pthread_cond_wait' takes a mutex as a parameter, it assumes that this mutex
+is locked when 'pthread_cond_wait' is called. The responsibility of
+'pthread_cond_wait' is to release the lock and put the calling thread to sleep
+(atomically). When the thread wakes up (after some other thread has signaled
+it), it must re-acquire the lock before returning to the caller of
+'pthread_cond_wait'.
+
+Hence there are 3 tasks for 'pthread_cond_wait'.
+    1. Release the mutex lock passsed to it as argument, so that other threads
+       can use it.
+    2. Put the thread to sleep mode.(First 2 actions are atomic)
+    3. Once it receives a signal from the other thread, acquire the lock back
+       and wake up from the sleep state and proceed with the execution.
+
+2. A thread which is waiting for a condition to become TRUE, uses a 'while loop'
+instead of just an 'if statement' when deciding whether to wait on the
+condition. The reason is that, suppose some other thread simply sends a signal
+(due to some logic of the program) with 'pthread_cond_signal' without making the
+condition variable as TRUE, then it will be just an illusion that condition has
+become TRUE and thread proceeds with the further execution, and will cause a
+race condition. Hence, it is always good idea to check for condition once again
+after getting the signal.
