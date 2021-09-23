@@ -1,0 +1,8 @@
+This section just shows the solution to the problem we saw in the last one,
+where using only one condition variable between producer and consumer was
+causing sleep to all the threads, and resulting the process hang.
+
+The solution is simple, take 2 condition variables, one can be used by producer
+thread to wait for the writing (the same will be used to signal from the
+consumers and other one can be used by consumer threads to wait for the reading
+(the same will be used to signal from the producers).
