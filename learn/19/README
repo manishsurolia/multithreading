@@ -1,0 +1,65 @@
+Condition variable API's should always be used around a condition variable.
+Otherwise we may see incorrect behaviour of the system.
+
+To understand the above statement, let's take the below example. Here,
+thread1(T1) executes 'fun1' and thread2(T2) executes 'fun2'.
+
+void * func1(void *arg)
+{
+    pthread_mutex_lock(&lock);
+    //Do Something.
+    pthread_cond_wait(&cond, &lock);
+    pthread_mutex_unlock(&lock);
+    return NULL;
+}
+
+void *func2(void *arg)
+{
+    pthread_mutex_lock(&lock);
+    // Do Something.
+    pthread_mutex_unlock(&lock);
+    pthread_cond_signal(&cond);
+    return NULL;
+}
+
+Lets consider two cases here,
+
+(1) case1 : T1 starts first, it takes the lock, do something and calls
+wait(because it wants other thread to finish some task before proceeding), and
+goes to sleep. Now, T2 starts, takes the lock(because lock was freed by T1 by
+calling 'wait'), fulfill the criteria for which T1 is waiting, then release the
+lock and send signal back to T1.
+
+In this case, we are good. Everything goes very nicely.
+
+(2) case2 : Now, lets take another case. Assume that T2 starts first instead of
+T1. Hence, the sequence will be,
+
+T2 starts first, takes the lock, do some work, which is required for T1 to
+proceed, then release the lock and send back the signal. Though, there is no one
+to take the signal as T1 has not started yet.
+
+Now, T1 starts, it takes the lock and call 'wait', so that other thread can
+take the lock and perform required activity. But unfortunately, T2 has already
+been completed the task and already sent a signal. So nothing happens here. T1
+goes to wait forever and hangs the system.
+
+There are 2 programs written based on the above cases to reflect that if we use
+condition variable thread API's without using a condition variable, how
+sequence of the threads execution can impact the result and force system to go
+to hang state.
+
+Below is execution for both the cases,
+
+[ ] gcc case1.c -lpthread
+[ ] ./a.out 
+T1 : Sending wait for ther other thread.
+T2 : Trying to acquire lock.
+T2 : Acquired lock. Returning.
+T1 : Got signal from the other thread. Exiting.
+
+[ ] gcc case2.c -lpthread
+[ ] ./a.out 
+T2 : Trying to acquire lock.
+T2 : Acquired lock. Returning.
+T1 : Sending wait for ther other thread. <- At this point, execution is hang.
