@@ -45,3 +45,6 @@ T1 : Got signal from the other thread. Rechecking the flag.
 [ ] ./a.out
 T2 : Trying to acquire lock.
 T2 : Acquired lock. Making flag as TRUE. Returning. - No sysetm hang now.
+
+Note : "Hold the lock when calling signal or wait, and you will always be in
+good shape."

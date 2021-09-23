@@ -28,8 +28,8 @@ void *func2(void *arg)
     pthread_mutex_lock(&lock);
     flag = TRUE;
     printf("T2 : Acquired lock. Making flag as TRUE. Returning.\n");
-    pthread_mutex_unlock(&lock);
     pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&lock);
 }
 
 int main(void)
