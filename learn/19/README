@@ -63,3 +63,6 @@ T1 : Got signal from the other thread. Exiting.
 T2 : Trying to acquire lock.
 T2 : Acquired lock. Returning.
 T1 : Sending wait for ther other thread. <- At this point, execution is hang.
+
+Note : "Hold the lock when calling signal or wait, and you will always be in
+good shape."

@@ -22,8 +22,9 @@ void *func2(void *arg)
     pthread_mutex_lock(&lock);
     // Do the work required for the other thread.
     printf("T2 : Acquired lock. Returning.\n");
-    pthread_mutex_unlock(&lock);
     pthread_cond_signal(&cond);
+    pthread_mutex_unlock(&lock);
+    return  NULL;
 }
 
 int main(void)
