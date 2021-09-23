@@ -1,0 +1,40 @@
+This is a basic program to show how we can implement a producer and consumer
+threads with the use of 'lock' and 'condition variable'.
+
+In this example, We have global shared memory (as an integer value), called
+buffer.
+
+We have another global shared data, called flag, which reflects whether the
+above buffer has data in it or not.
+
+Producer : Always write data to this buffer, if the flag is FALSE.
+Consumer : Always reads data from this buffer, if the flag is TRUE.
+
+In this example, producer writes data 10 times in the buffer and consumer is
+also reading the data from buffer 10 times.
+
+Please go through the example. Its quite simple usage of threads, lock and
+condition variable to synchronize between producer and consumer.
+
+[ ] gcc producer-consumer.c -lpthread
+[ ] ./a.out 
+Consumer : Writing 0 value to the buffer
+Consumer : Got value 0 from buffer
+Consumer : Writing 1 value to the buffer
+Consumer : Got value 1 from buffer
+Consumer : Writing 2 value to the buffer
+Consumer : Got value 2 from buffer
+Consumer : Writing 3 value to the buffer
+Consumer : Got value 3 from buffer
+Consumer : Writing 4 value to the buffer
+Consumer : Got value 4 from buffer
+Consumer : Writing 5 value to the buffer
+Consumer : Got value 5 from buffer
+Consumer : Writing 6 value to the buffer
+Consumer : Got value 6 from buffer
+Consumer : Writing 7 value to the buffer
+Consumer : Got value 7 from buffer
+Consumer : Writing 8 value to the buffer
+Consumer : Got value 8 from buffer
+Consumer : Writing 9 value to the buffer
+Consumer : Got value 9 from buffer
