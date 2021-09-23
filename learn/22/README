@@ -1,0 +1,105 @@
+Problem with a single producer and multiple consumers.
+-----------------------------------------------------
+
+Similar to one producer and one consumer solution in last section, we have just
+increased the number of consumers from one to two.
+
+Codewise, it is almost same. Except that, now we have 2 consumer threads instead
+of one.
+
+In this program, producer is writing to buffer 50 times (value 1 to 50), and
+consumers are consuming endlessly. So, even at the sucessful consumption of
+all the values by consumer threads, program will be stuck in while loop. You
+just need to terminate it with ctrl+c.
+
+But the issue we are discussing here is different. Remember that on the
+sucessfull completion of this program all the values (from 0 to 49) should be
+written by the producer thread and should be read by the consumer threads.
+
+But this does not happen with this implementation.
+
+Lets try to find out by running this program multiple times (as below):
+
+[ ] gcc one_producer_multiple_cusumers_problem.c -lpthread
+[ ] ./a.out
+Consumer2 : Got value 0 from the buffer
+Consumer2 : Got value 1 from the buffer
+Consumer2 : Got value 2 from the buffer
+Consumer2 : Got value 3 from the buffer
+Consumer2 : Got value 4 from the buffer
+Consumer1 : Got value 5 from the buffer
+Consumer1 : Got value 6 from the buffer
+Consumer1 : Got value 7 from the buffer
+Consumer1 : Got value 8 from the buffer
+Consumer1 : Got value 9 from the buffer
+Consumer2 : Got value 10 from the buffer
+----Program Stuck----
+
+[ ] ./a.out
+Consumer1 : Got value 0 from the buffer
+Consumer2 : Got value 1 from the buffer
+Consumer2 : Got value 2 from the buffer
+----Program Stuck----
+
+
+[ ] ./a.out
+Consumer1 : Got value 0 from the buffer
+Consumer2 : Got value 1 from the buffer
+Consumer2 : Got value 2 from the buffer
+----Program Stuck----
+
+[ ] ./a.out
+Consumer2 : Got value 0 from the buffer
+Consumer1 : Got value 1 from the buffer
+Consumer2 : Got value 2 from the buffer
+Consumer2 : Got value 3 from the buffer
+----Program Stuck----
+
+[ ] ./a.out
+Consumer1 : Got value 0 from the buffer
+Consumer1 : Got value 1 from the buffer
+Consumer1 : Got value 2 from the buffer
+----Program Stuck----
+
+See, the program is always getting stuck after few reads by the consumer
+threads. None of them are sucessful execution.
+
+The problem here is that we have 3 threads(1 producer and 2 consumers) which
+wait on the same condition variable and 'pthread_cond_signal' sends signal to
+only one thread (not to all, which are waiting for the the same lock).
+
+To understand it better, assume that, producer thread wrote a value to buffer,
+made the flag as TRUE, sent signal and came back to its while loop of condition
+variable, finds the flag as TRUE, release the lock and goes in wait(sleep)
+state.
+
+Now, since the producer released the lock, one consumer(C1) got this lock, it
+reads the buffer, makes the flag as FALSE, sends the signal, goes to the while
+loop of condition variable, finds the flag as FALSE, release the lock and goes
+in wait(sleep) state.
+
+case 1: At this time, if the signal given by the consumer (C1) has been received
+by producer thread, we are lucky, becaue it will get out of its wait state again
+check the condition in the while loop, finds it FALSE, come out of loop and
+write to the buffer...and so on.
+
+case 2 : __BUT__, if we are not so lucky, the signal given by the consumer (C1)
+will be received by another cosumer (C2), This consumer will wake up from sleep,
+again go to the while loop of condition variable, finds the flag as FALSE, and
+again goes to the wait (sleep).
+
+If the case2 happens, we have all three threads in the sleep condition, because
+signal can awake only one thread, the signal from C1 awaken another consumer
+thread (C2) and we have problem as above.
+
+Now, since all three threads are sleeping, there is no one to make them awake.
+
+Solution : We can solve this issue by 2 methods,
+    1. Don't use same condition variable for producer and consumers, because,
+       when consumer consumes the value, it needs to send signal to the
+       producer, not to another consumer.
+    2. Use 'pthread_cond_broadcast' instead of 'pthread_cond_signal', so that
+       it sends the signal to all of the waiting threads instead of just one
+       thread. But this is not appropriate solution. The first one is better.
+
+We will discuss on the solution in next section.
