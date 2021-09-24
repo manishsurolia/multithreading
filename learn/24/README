@@ -1,7 +1,73 @@
-This program is to show how to use an arrary buffer between two threads.
+This program is to show how to use an array buffer between multiple producer
+threads and multiple consumer threads.
 
-Currenly this implementation has some issues, need to fix.
+This is based on the implementation if a circular queue using an array.
 
-Note : Dont just take this example as it is, it needs some fixes.
+The idea is common, queue has a head and a tail.
 
+if (head == tail) ===> Queue is Empty.
+if ((head + 1) == tail) === > Queue is Full.
 
+MAX is total number of elements, which can come in the array at a time.
+
+If the queue is full, producer thread waits for the consumer thread to read from
+the queue, otherwise add data in the circular queue.
+
+If the queue is empty, consumer thread waits for the producer thread to add
+data, otherwise read the data from this circular queue.
+
+There are 2 producer threads and 2 consumer threads to write and read data from
+queue arbitrarily.
+
+Queue is synchronized using mutex lock and 2 condition variables. 
+
+Enqueue runs for 10-10 times for both the producer threads, and dequeue runs
+endlessly. so need to break the execution at the end.
+
+To verify the output, just see that all the enqueued elements are dequeued in
+the exact same order or not and all the data are dequeued or not.
+
+then break with ctrl-c.
+
+[ ] gcc queue.c -lpthread
+[ ] ./a.out 
+Enqueued element 3
+Enqueued element 7
+Enqueued element 5
+Enqueued element 3
+Enqueued element 5
+Enqueued element 6
+Enqueued element 2
+Enqueued element 9
+Enqueued element 1
+Enqueued element 2
+Dequeued element : 3
+Dequeued element : 7
+Dequeued element : 5
+Dequeued element : 3
+Dequeued element : 5
+Dequeued element : 6
+Dequeued element : 2
+Dequeued element : 9
+Dequeued element : 1
+Dequeued element : 2
+Enqueued element 6
+Enqueued element 7
+Enqueued element 0
+Enqueued element 9
+Enqueued element 3
+Enqueued element 6
+Enqueued element 0
+Enqueued element 6
+Enqueued element 2
+Enqueued element 6
+Dequeued element : 6
+Dequeued element : 7
+Dequeued element : 0
+Dequeued element : 9
+Dequeued element : 3
+Dequeued element : 6
+Dequeued element : 0
+Dequeued element : 6
+Dequeued element : 2
+Dequeued element : 6
