@@ -1,0 +1,110 @@
+The purpose of this program to use a semaphore for lock mechanism between two
+threads, similar to 'pthread_mutex_lock'.
+
+Note : When we use semaphore as just a lock mechanism between multiple threads,
+semaphore is called as "Binary Semaphore".
+
+It works as below:
+
+Semaphore is initialized as below:
+
+    sem_init(&sem, 0, 1);
+
+First argument  :  Just the address of the semaphore defined.
+
+Second argument :  Threads are between the same process or different.
+                   (If same process, use the value 0).
+
+Third argument  :  Semaphore value.
+
+The first 2 arguments are quite simple to understand. Lets check the third
+argument.
+
+We have 2 functions around a semaphore.
+ (1) sem_wait()
+ (2) sem_post()
+
+The job of sem_wait() is : Reduce the semaphore value by 1.
+                           After decrement, if the value is -1, then wait,
+                           otherwise, continue with execution. 
+
+The job of sem_post() is : Increment the semaphore value by 1.
+                           After increment, Awake any thread waiting on this
+                           semaphore.
+
+Below is the example provided in the code sample,
+
+void *fun(void *arg)                                                                
+{                                                                                   
+    sem_wait(&sem);                                                                 
+    printf("%s : Entering the critical section.\n", (char *)arg);                   
+    sleep(1);                                                                       
+    printf("%s : Leaving the critical section.\n", (char *)arg);                    
+    sem_post(&sem);                                                                 
+}
+
+int main()                                                                          
+{                                                                                   
+       ----
+    sem_init(&sem, 0, 1);                                                           
+       -----
+    return 0;                                                                       
+}
+
+Here, in the main(), semaphore is initialize with value 1. 
+
+Assume that very first time, T1 enters the function 'fun', then the 'sem_wait'
+just decrements the value of the semaphore by 1, making it 0. The value is still
+not '-1', hence, it continues with the execution in critical section.
+
+Now, assume that when T1 is executing the critical section, execution gets
+preempted to T2, which also executes the 'sem_wait', and makes the value of
+semaphore as '-1'. Since the value of semaphore has become '-1', it cant
+proceed. Hence, goes to the wait state.
+
+Now, OS switch back to T1, which completes the critical section, and executes
+'sem_post', which increment the value by 1, making the value back to 0 and
+awaking the other thread (T2). Now the thread T2 will continue with the
+execution and at the end it will call 'sem_post' making the semaphore value as
+1.
+
+[ ] gcc semaphore_example.c -lpthread
+[ ] ./a.out 
+T1 : Entering the critical section.
+T1 : Leaving the critical section.
+T2 : Entering the critical section.
+T2 : Leaving the critical section.
+
+Here, we have been able to use semaphore as a lock(same as pthread_mutex_lock).
+If a semaphore is used as a lock, it is called "binary semaphore".
+
+Note : We need to be careful while using semaphores, as 'sem_post' can be called
+even without calling first 'sem_wait'.
+
+Also, Lets try to modify the value of third argument of sem_init().
+
+If we make it 'sem_init(&sem, 0, 2);, and compile the program,
+
+[ ] gcc semaphore_example.c -lpthread
+[ ] ./a.out 
+T1 : Entering the critical section.
+T2 : Entering the critical section.
+T1 : Leaving the critical section.
+T2 : Leaving the critical section.
+
+We have a problem, both the threads were able to enter the critical section,
+together.
+
+Reason is simple, when the first thread's (T1) 'sem_wait' made it to 1, it can
+enter to the critical section, and then wait() executes for T2, it makes the
+value as 0, still it can also enter the critical section as the value of
+semaphore is still not -1.
+
+Now, if we make the init value as 0 as 'sem_init(&sem, 0, 0);'
+
+[ ] gcc semaphore_example.c -lpthread
+[ ] ./a.out 
+
+Program is hang, because the semaphore value was already 0 and first wait made
+it as -1, and second made it as -2, so none of them can enter the critical
+section and goes to the wait state.
