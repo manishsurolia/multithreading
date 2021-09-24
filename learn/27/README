@@ -1,11 +1,11 @@
 This section represents the code just like the last example, where semaphores
-were used to use queue between one producer and one consumer thread.
+were used for queue implementation between one producer and one consumer thread.
 
-This example has been extended to use then same queue between multiple producers
+This example has been extended to use the same queue between multiple producers
 and multiple consumers.
 
 Note : Since, now we have multiple producers, we need to have some kind of lock
-mechanism, otherwise will be race conditions between multiple
+mechanism, otherwise there will be race conditions between multiple
 writers(producers).
 
 For this lock also, we have just used semaphore as a 'binary semaphore' or a
