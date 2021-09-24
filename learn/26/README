@@ -1,0 +1,102 @@
+The purpose of this program is to show, how we can use semaphores to share
+multiple resources between multiple threads.
+
+Basically this example has a global queue 'buffer' of size 'MAX', which is
+shared between all the available threads.
+
+Some threads will write to it, and some will read from it. When a thread writes
+to an index of the buffer, the 'write_index' increments and when reader reads an
+element from an index of this buffer, again the 'read_index' also increases.
+Both the indexes go in circular fashion.
+
+Its like a circular queue and 'write_index' and 'read_index' increments like
+below,
+
+    write_index = (write_index + 1 ) % MAX;
+    read_index = (read_index + 1) % MAX;
+
+Since we have 'MAX' number of resources globally, we can synchronize all them
+using semaphores.
+
+Semaphore is like a bucket, where we have the keys needed to use the resources.
+
+Producer is a writer.
+consumer is a reader.
+
+First, we will keep all the 'MAX' keys in the producer's bucket.
+So, at starting, we initialize the producer's bucket as below
+(in main() function),
+
+    sem_init(&writer_sem, 0, MAX); <-- 'MAX' number of keys present at starting.
+
+and, consumer's bucket looks like below at starting,
+
+    sem_init(&reader_sem, 0, 0);   <-- 0 keys present at starting.
+
+As in when producer will be writing the data in the global buffer, these
+keys(resources) will be moved from writer's bucket to reader's bucket as below
+(snippet from function 'producer').
+
+    sem_wait(&writer_sem); <-- Decrement one count from the writer's bucket(writer_sem).
+    buffer[write_index] = i;
+    write_index = (write_index + 1) % MAX;
+    sem_post(&reader_sem); <-- Increment one count in the reader's bucket(reader_sem).
+
+If producer thread keeps writing to the buffer indexes, after MAX count, there
+will not be any more keys available for the writing as 'writer_sem' has become
+'-1'.
+
+As in when consumer will be reading the data from the global buffer, resources
+will be moved from consumer's bucket to producer's bucket as below (snippet from
+function 'consumer').
+
+    sem_wait(&reader_sem); <-- Decrement one count from the reader's bucket(reader_sem).
+    temp = buffer[read_index];
+    read_index = (read_index + 1) % MAX;
+    sem_post(&writer_sem); <-- Increment one count in the writer's bucket(writer_sem).
+
+If consumer thread keeps reading from the buffer indexes, after MAX count, there
+will not be any more keys available for the writing as 'reader_sem' has become
+'-1'.
+
+Let's compile and run this program.
+
+[ ] gcc queue.c -lpthread
+[ ] ./a.out
+Written value to buffer : 0
+Written value to buffer : 1
+Written value to buffer : 2
+Written value to buffer : 3
+Written value to buffer : 4
+Read value from buffer : 0
+Read value from buffer : 1
+Read value from buffer : 2
+Read value from buffer : 3
+Read value from buffer : 4
+Written value to buffer : 5
+Written value to buffer : 6
+Written value to buffer : 7
+Written value to buffer : 8
+Written value to buffer : 9
+Read value from buffer : 5
+Read value from buffer : 6
+Read value from buffer : 7
+Read value from buffer : 8
+Read value from buffer : 9
+
+Here, we can see that because the 'MAX' is 5 first, writer threads writes
+5 values to all the places in buffer, the reader reads all of them, then writer
+writes the remaining 5, then reader reads then.
+
+We can try to change the buffer size 'MAX' and also the number of values being
+added to the buffer by producer thread.
+
+Note : In this example, we are taking only a single writer thread and single
+reader thread.
+
+Note : we have not used any lock mechasism around the critical section of the
+program, because there is only one reader and one writer in this example.
+Hence, there is not chance of race condition. Reader will get the key, only when
+it has been passed from writer thread to the reader thread.
+
+But when there are more writers, we will need to protect our critical section.
