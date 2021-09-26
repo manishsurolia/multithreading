@@ -1,63 +1,80 @@
 The purpose of this program is to show, how we can use semaphores to share
 multiple resources between multiple threads.
 
-Basically this example has a global queue 'buffer' of size 'MAX', which is
-shared between all the available threads.
+Basically, this example has a global array 'buffer' of size 'MAX', which is
+shared between multiple threads of the same process.
 
-Some threads will write to it, and some will read from it. When a thread writes
-to an index of the buffer, the 'write_index' increments and when reader reads an
-element from an index of this buffer, again the 'read_index' also increases.
-Both the indexes go in circular fashion.
+Some threads will fill data into this array(buffer array), called producer
+thread and some will use data from it, called consumer thread.
 
-Its like a circular queue and 'write_index' and 'read_index' increments like
-below,
+#define MAX 5  <-- Number of resources(maximum placeholders in buffer array).
 
-    write_index = (write_index + 1 ) % MAX;
-    read_index = (read_index + 1) % MAX;
+int buffer[MAX]
+int fill_index;
+int use_index;
+
+'fill_index' is an index, which shows where to fill new data in the buffer
+array. 'use_index' is an index, which shows where to use/consume the data from
+the buffer array. Once data is written at 'fill_index' of the buffer array,
+'fill_index' is incremented and similarly, when data is consumed from
+'use_index' of the buffer array, 'use_index' is incremented. This buffer array
+is used as circular array, means after last 'MAX-1' index, increment goes to the
+first 0th index. Hence, increments are like,
+
+    fill_index = (fill_index + 1) % MAX;
+    use_index = (use_index + 1) % MAX;
+
+Initially, both 'fill_index' and 'use_index', will be at the index 0. Producer
+produces data in buffer array at index 'fill_index'.
+Consumer consumes data from buffer array at index 'use_index'.
+
+Note : The above is __NOT__ like one thread will just produce data to the buffer
+array and other will just consume from the buffer (making no changes).
+Both producer and consumer threads are updating the above buffer by making
+changes to 'fill_index' and 'use_index'. Hence, both type of threads are
+writer to the buffer array. One produces data in the buffer array, another
+consumes data from the buffer array.
 
 Since we have 'MAX' number of resources globally, we can synchronize all them
 using semaphores.
 
 Semaphore is like a bucket, where we have the keys needed to use the resources.
 
-Producer is a writer.
-consumer is a reader.
-
 First, we will keep all the 'MAX' keys in the producer's bucket.
-So, at starting, we initialize the producer's bucket as below
+So, at starting, we initialize the producer's bucket as below,
 (in main() function),
 
-    sem_init(&writer_sem, 0, MAX); <-- 'MAX' number of keys present at starting.
+    sem_init(&empty_sem, 0, MAX); <-- 'MAX' number of keys present at starting.
 
 and, consumer's bucket looks like below at starting,
 
-    sem_init(&reader_sem, 0, 0);   <-- 0 keys present at starting.
+    sem_init(&full_sem, 0, 0);   <-- 0 keys present at starting.
 
-As in when producer will be writing the data in the global buffer, these
-keys(resources) will be moved from writer's bucket to reader's bucket as below
-(snippet from function 'producer').
+As and when producer will be writing the data in the global buffer, these
+keys(resources) will be moved from producer's bucket to consumer's bucket as
+below (snippet from function 'producer').
 
-    sem_wait(&writer_sem); <-- Decrement one count from the writer's bucket(writer_sem).
-    buffer[write_index] = i;
-    write_index = (write_index + 1) % MAX;
-    sem_post(&reader_sem); <-- Increment one count in the reader's bucket(reader_sem).
+    sem_wait(&empty_sem); <-- Decrement one count from the producer's bucket(empty_sem).
+    buffer[fill_index] = i; <-- Produce data at the 'fill_index'.
+    fill_index = (fill_index + 1) % MAX; <-- increment 'fill_index'.
+    sem_post(&full_sem); <-- Increment one count in the consumer's bucket(full_sem).
 
-If producer thread keeps writing to the buffer indexes, after MAX count, there
-will not be any more keys available for the writing as 'writer_sem' has become
+If producer thread keeps writing to the buffer indexes, after 'MAX' count, there
+will not be any more keys available for the writing as 'empty_sem' has become
 '-1'.
 
-As in when consumer will be reading the data from the global buffer, resources
+As and when consumer will be consuming data from the global buffer, resources
 will be moved from consumer's bucket to producer's bucket as below (snippet from
 function 'consumer').
 
-    sem_wait(&reader_sem); <-- Decrement one count from the reader's bucket(reader_sem).
-    temp = buffer[read_index];
-    read_index = (read_index + 1) % MAX;
-    sem_post(&writer_sem); <-- Increment one count in the writer's bucket(writer_sem).
+    sem_wait(&full_sem); <-- Decrement one count from the consumer's bucket(full_sem).
+    temp = buffer[use_index]; <-- Consume data from the 'use_index'.
+    use_index = (use_index + 1) % MAX; <-- Increment 'use_index'.
+    sem_post(&empty_sem); <-- Increment one count in the producer's bucket(empty_sem).
 
-If consumer thread keeps reading from the buffer indexes, after MAX count, there
-will not be any more keys available for the writing as 'reader_sem' has become
-'-1'.
+If consumer thread keeps consuming from the buffer indexes, after MAX count,
+there will not be any more keys available for the consuming as 'full_sem' has
+become '-1'.
 
 Let's compile and run this program.
 
@@ -84,19 +101,22 @@ Read value from buffer : 7
 Read value from buffer : 8
 Read value from buffer : 9
 
-Here, we can see that because the 'MAX' is 5 first, writer threads writes
-5 values to all the places in buffer, the reader reads all of them, then writer
-writes the remaining 5, then reader reads then.
+Here, we can see that because the 'MAX' is 5 first, Producer threads fills 5
+values in buffer, then consumer uses/consumes all of them, then producer fills
+the remaining 5, then consumer consumes then.
 
-We can try to change the buffer size 'MAX' and also the number of values being
-added to the buffer by producer thread.
+To see whether the solution works fine with different number of available
+buffers available, and with different number of values being produced by
+producer, we can change the buffer size 'MAX' and also the number of values
+being added to the buffer by producer thread.
 
-Note : In this example, we are taking only a single writer thread and single
-reader thread.
+Note : In this example, we are taking only a single producer thread and a single
+consumer thread.
 
-Note : we have not used any lock mechasism around the critical section of the
-program, because there is only one reader and one writer in this example.
-Hence, there is not chance of race condition. Reader will get the key, only when
-it has been passed from writer thread to the reader thread.
+Note : we have not used any lock mechanism around the critical section of the
+program, because once producer produces data at a particular index, producer
+will not produce data at this index again, until it has been consumed by the
+consumer.
 
-But when there are more writers, we will need to protect our critical section.
+But when there are more producers, we will surely need to protect our critical
+section.
