@@ -1,0 +1,33 @@
+The below programs and details are related to multi-threading programming and
+are just my notes based on my understanding of multi-threading after referring
+Books/online docs available. Can't guarantee that everything explained in these
+examples is correct. Please refer good books on this topic to avoid any
+misguiding info.
+
+1. Threads Intro
+2. pthread_join example
+3. deadlock due to pthread_join() call
+4. Multiple threads updating the same global var non-deterministically
+5. Usage of mutex lock
+6. condition variable example
+7. Multiple threads on multiple CPU's
+8. Constructing our own spin lock. Part-1
+9. Constructing our own spin lock. Part-2. Overcoming the issue seen in part-1.
+10. Lock implementation using compare-and-swap
+11. Load-Linked and Store-Conditional
+12. CPU yield by threads
+13. Priority inversion and priority inheritance
+14. Non-scalable counters implementation between multiple threads.
+15. Scalable counters with multi-threading
+16. Concurrent List
+17. Concurrent Queue
+18. Lock for one writer and one reader thread
+19. Incorrect usage of condition variable API's
+20. Correct usage of condition variable API's
+21. Basic producer-consumer synchronization program
+22. One producer and multiple consumers problem
+23. One producer and multiple consumers solution
+24. Circular Queue implementation with multiple producer and consumer threads
+25. Semaphore used as lock(Binary Semaphore)
+26. Bounded buffer implementation with semaphores
+27. Bounded buffer implementation with semaphores and multiple threads
