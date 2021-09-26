@@ -21,7 +21,7 @@ misguiding info.
 15. Scalable counters with multi-threading
 16. Concurrent List
 17. Concurrent Queue
-18. Do I need a mutex for just reading?
+18. Do I need a mutex for reading a global integer?
 19. Incorrect usage of condition variable API's
 20. Correct usage of condition variable API's
 21. Basic producer-consumer synchronization program

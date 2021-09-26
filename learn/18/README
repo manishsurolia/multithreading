@@ -2,8 +2,11 @@ Snippet from a online discussion,
 
 https://stackoverflow.com/questions/1525189/do-i-need-a-mutex-for-reading
 
-Question : Do I need a mutex for reading?
------------------------------------------
+Question : Do I need a mutex for reading a global integer?
+----------------------------------------------------------
+
+Note : This question is __NOT__ about readeing a pointer, which can hold the
+       address of some meaningful data. Its about reading an integer value.
 
 Answer : On most modern CPU's, reading an integer is an atomic operation, which
 -----    means that you will always read a consistent value, even without a
@@ -201,8 +204,8 @@ Means,
     - Reader does not need a lock(there is an exception, see above).
 
     - Writer does not need a lock, if that is the only writer for this global
-      share data, because there is not other writer which is going to impact
-      his write.
+      shared integer data, because there is no other writer which can impact its
+      write.
 
     - If there are multiple writers on the same global shared data, we surely
       need a lock mechanism, because otherwise, one writer can impact the
