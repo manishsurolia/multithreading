@@ -1,60 +1,64 @@
 This section represents the code just like the last example, where semaphores
-were used for queue implementation between one producer and one consumer thread.
+were used for bounded buffer implementation between one producer and one
+consumer thread.
 
-This example has been extended to use the same queue between multiple producers
-and multiple consumers.
+This example has been extended to use the same bounded buffer between multiple
+producers and multiple consumers.
 
 Note : Since, now we have multiple producers, we need to have some kind of lock
-mechanism, otherwise there will be race conditions between multiple
-writers(producers).
+mechanism, otherwise there will be race conditions between multiple producers.
 
-For this lock also, we have just used semaphore as a 'binary semaphore' or a
+For this lock also, we have just used semaphore as a 'binary semaphore' as a
 lock.
+
+In this program, we have 'MAX' as 2, we can keep changing it to test it with
+more values of 'MAX. Also, we can change the number of values written by a
+thread and also the number of threads.
 
 Lets compile and run this program.
 
-[ ] gcc queue.c -lpthread
-[ ] ./a.out
-P1 : Written value to buffer : 0
-C1 : Read value from buffer : 0
-P1 : Written value to buffer : 1
-C2 : Read value from buffer : 1
-P1 : Written value to buffer : 2
-C1 : Read value from buffer : 2
-P1 : Written value to buffer : 3
-C2 : Read value from buffer : 3
-P1 : Written value to buffer : 4
-C1 : Read value from buffer : 4
-P2 : Written value to buffer : 0
-P2 : Written value to buffer : 1
-C1 : Read value from buffer : 0
-C1 : Read value from buffer : 1
-P2 : Written value to buffer : 2
-P2 : Written value to buffer : 3
-C1 : Read value from buffer : 2
-C1 : Read value from buffer : 3
-P2 : Written value to buffer : 4
-P2 : Written value to buffer : 5
-C2 : Read value from buffer : 4
-P1 : Written value to buffer : 5
-C1 : Read value from buffer : 5
-C1 : Read value from buffer : 5
-P2 : Written value to buffer : 6
-P2 : Written value to buffer : 7
-C1 : Read value from buffer : 6
-C1 : Read value from buffer : 7
-P2 : Written value to buffer : 8
-P2 : Written value to buffer : 9
-C2 : Read value from buffer : 8
-C2 : Read value from buffer : 9
-P1 : Written value to buffer : 6
-P1 : Written value to buffer : 7
-C1 : Read value from buffer : 6
-C2 : Read value from buffer : 7
-P1 : Written value to buffer : 8
-P1 : Written value to buffer : 9
-C1 : Read value from buffer : 8
-C1 : Read value from buffer : 9
+[ ] gcc bounded_buffer.c -lpthread
+[ ] ./a.out 
+Producer 1 : Produced value to buffer : 0
+Consumer 2 : Consumed value from buffer : 0
+Producer 1 : Produced value to buffer : 1
+Consumer 2 : Consumed value from buffer : 1
+Producer 1 : Produced value to buffer : 2
+Consumer 2 : Consumed value from buffer : 2
+Producer 2 : Produced value to buffer : 0
+Producer 1 : Produced value to buffer : 3
+Consumer 2 : Consumed value from buffer : 0
+Consumer 2 : Consumed value from buffer : 3
+Producer 1 : Produced value to buffer : 4
+Producer 1 : Produced value to buffer : 5
+Consumer 2 : Consumed value from buffer : 4
+Producer 1 : Produced value to buffer : 6
+Consumer 2 : Consumed value from buffer : 5
+Producer 1 : Produced value to buffer : 7
+Consumer 2 : Consumed value from buffer : 6
+Producer 1 : Produced value to buffer : 8
+Consumer 2 : Consumed value from buffer : 7
+Producer 1 : Produced value to buffer : 9
+Consumer 2 : Consumed value from buffer : 8
+Consumer 2 : Consumed value from buffer : 9
+Producer 2 : Produced value to buffer : 1
+Producer 2 : Produced value to buffer : 2
+Consumer 2 : Consumed value from buffer : 1
+Consumer 2 : Consumed value from buffer : 2
+Producer 2 : Produced value to buffer : 3
+Producer 2 : Produced value to buffer : 4
+Consumer 1 : Consumed value from buffer : 3
+Consumer 1 : Consumed value from buffer : 4
+Producer 2 : Produced value to buffer : 5
+Producer 2 : Produced value to buffer : 6
+Consumer 2 : Consumed value from buffer : 5
+Consumer 2 : Consumed value from buffer : 6
+Producer 2 : Produced value to buffer : 7
+Producer 2 : Produced value to buffer : 8
+Consumer 2 : Consumed value from buffer : 7
+Consumer 2 : Consumed value from buffer : 8
+Producer 2 : Produced value to buffer : 9
+Consumer 2 : Consumed value from buffer : 9
 
-here, you can see that the sequence of the write and read are correct (as per
-a queue). Hence, the implementation is working fine.
+Here, you can see that the sequence of the write and read are correct. Hence,
+the implementation is working fine.
