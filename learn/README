@@ -31,3 +31,4 @@ misguiding info.
 25. Semaphore used as lock(Binary Semaphore)
 26. Bounded buffer implementation with semaphores
 27. Bounded buffer implementation with semaphores and multiple threads
+28. Reader-writer lock implementation.
