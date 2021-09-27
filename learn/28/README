@@ -18,17 +18,23 @@ Below are some constraints,
         b. Other readers can read the link list simultaneously, as they don't
            make any change in the list.
 
-Based on the above points, concluion is,
+Based on the above points, conclusion is,
 
 In case 1a, lock is needed for critical section.
-In case 1b, lock is neeeded for cirtical section.
+In case 1b, lock is neexeded for critical section.
 In case 2a, lock is needed for critical section.
 In case 2b, lock is not needed for critical section.
 
-Lets try to create our own lock using semapores to fulfill the above conditions,
+Lets try to create our own lock using semaphores to fulfill the above conditions,
 
 typedef struct rwlock {
     sem_t lock;
     sem_t writelock;
     int readers;
 } rwlock;
+
+[ ] gcc test.c rwlock.c list.c -lpthread
+[ ] ./a.out
+
+Tt will increase and then decrease the total threads in the list. Please
+check the test program to understand the testing done for reader-writer test.
