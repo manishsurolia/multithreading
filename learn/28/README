@@ -1,0 +1,34 @@
+The purpose of this section, is to design a lock used between multiple
+writer threads and reader threads.
+
+Writer : A thread which writes to a data structure.
+
+Reader : Reader thread does not write to the data structure. It just reads the
+data.
+
+Let's assume that we have a link list, which is written/updated by multiple
+writer threads, and also read by multiple reader threads.
+
+Below are some constraints,
+(1) Writer can write based on the below 2 conditions.
+        a. Only one writer is allowed to write to the link list at a time.
+        b. When there is a reader, reading the list, writer can't write.
+(2) Reader can read based on below 2 conditions,
+        a. No writer is writing to the link list.
+        b. Other readers can read the link list simultaneously, as they don't
+           make any change in the list.
+
+Based on the above points, concluion is,
+
+In case 1a, lock is needed for critical section.
+In case 1b, lock is neeeded for cirtical section.
+In case 2a, lock is needed for critical section.
+In case 2b, lock is not needed for critical section.
+
+Lets try to create our own lock using semapores to fulfill the above conditions,
+
+typedef struct rwlock {
+    sem_t lock;
+    sem_t writelock;
+    int readers;
+} rwlock;
