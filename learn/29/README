@@ -1,0 +1,32 @@
+This program is to show the dinning philosopher problem.
+There are 5 philosophers sitting on a circular dining table. Each one of them
+have only two work while sitting on dinning table.
+
+    1. Think.
+    2. Eat.
+
+Each one of them have a fork in his left side and in his right side.
+Forks are shared between philosophers. For example, philosopher P1 and P2 share
+the fork F1 and P2 and P2 share the fork F2.
+
+Each fork can be used by only one philosopher at a time.
+For complete details, please refer below wiki:
+
+https://en.wikipedia.org/wiki/Dining_philosophers_problem
+
+This program is to just show the problem, where each philosopher is blocked
+for one fork and that fork is being used by other philosopher.
+
+[ ] gcc dining_philosophers.c -lpthread
+[ ] ./a.out
+P0 : Acquired F0 and waiting for F1
+P1 : Acquired F1 and waiting for F2
+P4 : Acquired F4 and waiting for F0
+P3 : Acquired F3 and waiting for F4
+P2 : Acquired F2 and waiting for F3
+
+Here, you can see that Each philosopher is waiting for a fork which is being
+used by some other philosopher and program is stuck.
+
+Note : I did not use any delay in the eat() or think() functions, to produce the
+issue quickly after executing the program.
