@@ -33,3 +33,4 @@ misguiding info.
 27. Bounded buffer implementation with semaphores and multiple threads
 28. Reader-writer lock implementation.
 29. Dining philosophers problem.
+30. Dining philosophers solution.
