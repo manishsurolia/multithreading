@@ -1,0 +1,39 @@
+This section attempts to solve the problem of dinning philosophers (discussed in
+the last section).
+
+The problem was that, if each philosopher takes left fork, then all the
+philosophers will wait for the right fork and vice versa because there is no
+more forks available on the table to take.
+
+Hence, this cause a problem of deadlock, where each philosopher is waiting for
+a fork, which is not available.
+
+Let's try to solve the problem with below approach.
+
+Fix : To solve this deadlock, let's say that whenever one philosopher is
+taking forks, no other philosopher will attempt to take any fork. To achieve
+this, we introduce a 'global lock' (lock), which is acquired by any philosopher
+when he attempts to take 2 forks. After taking both the forks, he releases the
+global lock and then goes for eating.
+
+Assume that philosopher-1 attempts to take the forks, he will first take this
+global lock, then take both the forks(left and right) and then release the
+global lock. Now, assume that philosopher-3 wants to eat, he takes the global
+lock, take both the available forks and leave the global lock. This way,
+we make sure that when one philosopher is taking forks, we let him finish
+taking forks, before others proceed to take any fork.
+
+Let's try to compile and execute the program.
+
+[ ] gcc dining_philosophers.c -lpthread
+[ ] ./a.out
+P1 : DONE
+P0 : DONE
+P4 : DONE
+P3 : DONE
+P2 : DONE
+
+This program works all good when 5 philosophers, each tries to eat 1 Million
+times.
+We can try to increase the number of philosophers (MAX) and the number of times,
+they need to eat to test the logic more.
