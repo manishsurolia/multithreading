@@ -34,3 +34,4 @@ misguiding info.
 28. Reader-writer lock implementation.
 29. Dining philosophers problem.
 30. Dining philosophers solution.
+31. re-entrant with recursion.
