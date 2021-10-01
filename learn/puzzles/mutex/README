@@ -1,0 +1,29 @@
+Puzzle: Add semaphores to the following example to enforce mutual exclusion to
+the shared variable count.
+
+        Thread A           |                 Thread B
+     -------------------------------------------------
+      count=count+1        |               count=count+1
+
+Solution: Here, we should just need to make sure that if one thread is executing
+its code, other should not. One should execute only if the other one is not
+executing it.
+
+Just take one semaphore, initialize it to value 1, so that any thread can take
+it and decrease it to 0 with sem_wait(), then once it does the sem_post(), again
+the semaphore value will be 1, ready to be consumed again. This way, a semaphore
+can be used a mutex.
+
+When we initialize a semaphore with count 1, it is often called a binary
+semaphore.
+
+[ ] gcc mutex.c -lpthread
+[ ] ./a.out
+Count : 2000
+
+Note: In this example, both threads are running the same code. This is sometimes
+called a symmetric solution. If the threads have to run different code,
+the solution is asymmetric. Symmetric solutions are often easier to generalize.
+In this case, the mutex solution can handle any number of concurrent threads
+without modification. As long as every thread waits before performing an update
+and signals after, then no two threads will access count concurrently.
