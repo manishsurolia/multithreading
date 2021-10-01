@@ -3,7 +3,7 @@ to wait for Thread B and vice versa. In other words, given this code
 
             Thread A        |                Thread B
        -------------------------------------------------
-          statement a1      |              statement a1
+          statement a1      |              statement b1
           statement a2      |              statement b2
 
 
