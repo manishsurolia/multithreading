@@ -1,0 +1,72 @@
+In this section, lets talk about re-enterant function.
+
+https://en.wikipedia.org/wiki/Reentrancy_(computing)
+
+According to this very good wiki page about 'Reentrancy', a re-enterant
+function can be interrupted in the middle of its completion.
+
+To understand the concept of re-renterant functions, Lets think about a
+re-enterent function in a "single threaded application".
+
+There can be below 2 ways by which a function can be called again before the
+completion of the first execution.
+
+    - Internal action : Recursion (function calls itself), 'jump' or 'call'
+                        instructions.
+
+    - External action : interrupt or signal.
+
+Internal Action (Recursion):
+----------------------------
+
+Let's first check the case where a function is recursive but not re-enterant.
+
+Here, in this example, we are trying to write a recursive function, which adds
+up to the value in below format:
+
+If input is 3:
+
+    1+1+1 = 3
+    1+1 = 2
+    1 = 1
+    0 = 0
+
+    Total = 3 + 2 + 1 = 6
+
+Now, Let's compile and execute the program as below:
+
+[ ] gcc recursion_without_reentrant.c
+[ ] ./a.out
+Output : 4
+
+Here, we have wrong output, the output should have been 6 as explained above,
+but its 4 because, this function is written in such a way that if this function
+is re-entered before first completion, it impacts the execution of the first
+iteration of this function, which is not yet completed.
+
+The issue here is that, we are using a global variable here, due to which
+each new function re-enterancy affects the value produced in the last call,
+which has not yet completed due to recursion, and this results in wrong final
+result.
+
+We can go through the code to understand it better, but this is basically to
+show that this function is not re-enterant.
+
+-------------------------------------------------------------------------------
+
+Let's now make this function re-enterant by moving the global counter inside
+the function.
+
+[ ] gcc recursion_with_reentrant.c
+[ ] ./a.out
+Output : 6
+
+Here, you can see that by making this global variable as local, we have made
+this function re-enterent.
+
+Now, new call to this function does not impact any previous call.
+
+External Action (signal, ISR):
+-----------------------------
+
+Lets check this in later sections.
