@@ -29,6 +29,87 @@ Answer : On most modern CPU's, reading an integer is an atomic operation, which
         the compiler or CPU.
 
 Let's take an example to see how write and read happens between two threads.
+
+Example 1:
+---------
+
+This example/puzzle is from below link:
+"https://greenteapress.com/semaphores/LittleBookOfSemaphores.pdf"
+
+Lets say, we have 2 threads(Thread A and Thread B), which are updating the same
+global variable.
+
+Simply assigning some values (5 and 7) to it. Below is the code.
+
+int x; //global variable.
+
+        Thread A:                   |       Thread B:
+-----------------------------------------------------
+    x = 5;                          |        x = 7;
+    printf("%d", x);                |
+
+
+Puzzle: What path yields output 5 and final value 5?
+Puzzle: What path yields output 7 and final value 7?
+Puzzle: Is there a path that yields output 7 and final value 5? Can you
+prove it?
+
+Lets compile this code and see the assembly got generated.
+
+[ ] cat test.c
+unsigned int var = 0;
+
+void set(void)
+{
+    var = 10;
+}
+
+[ ] gcc -c test.c
+[ ] objdump --disassemble test.o
+
+test.o:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000000000 <set>:
+   0:	f3 0f 1e fa          	endbr64
+   4:	55                   	push   %rbp
+   5:	48 89 e5             	mov    %rsp,%rbp
+   8:	c7 05 00 00 00 00 0a 	movl   $0xa,0x0(%rip) <-- Only one instruction to write to the global var(memory).
+   f:	00 00 00
+  12:	90                   	nop
+  13:	5d                   	pop    %rbp
+  14:	c3                   	retq
+
+Now, based on this assembly lets try to answer to the puzzles above:
+
+(1) What path yields output 5 and final value 5?
+
+First Thread B will start, it will execute 'movl' to store value 7, and then
+execution will come back to Thread A. Thread A will execute 'movl' and store 5
+in the global memory for this variable, ane the execution goes for the printf
+function.
+
+(2) Puzzle: What path yields output 7 and final value 7?
+
+First Thread A will start, it will execute 'movl' to store the value 5, then
+execution will switch to Thread B. Thread will store the value 7, the execution
+comes back to Thread A. Thread A prints the value.
+
+(3) Puzzle: Is there a path that yields output 7 and final value 5? Can you
+prove it?
+
+This can not happen, because yielding output 7 means, that the 'movl' for
+thread B has been already done and also in the thread A, print function comes
+after the assignment, that means, 'movl' for thread A is also done. Also, if
+print is printing 7, means, assignment of 5 happened first by thread A, then
+assignment of value 7 by thread B and then the print happened by Thread A. So,
+this case is not possible.
+
+Example 2:
+----------
+
 We have two functions in a c file, 'set' and 'get.
 
 [ ] cat test.c
