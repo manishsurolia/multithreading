@@ -1,0 +1,71 @@
+Semaphores can also be used to represent a queue. In this case, the initial
+value is 0, and usually the code is written so that it is not possible to signal
+unless there is a thread waiting, so the value of the semaphore is never
+positive.
+
+For example, imagine that threads represent ballroom dancers and that two kinds
+of dancers, leaders and followers, wait in two queues before entering the dance
+floor. When a leader arrives, it checks to see if there is a follower waiting.
+If so, they can both proceed. Otherwise it waits.
+
+Similarly, when a follower arrives, it checks for a leader and either proceeds
+or waits, accordingly.
+
+Puzzle: write code for leaders and followers that enforces these constraints.
+
+Solution:
+--------
+
+I can think of one more scenario similar to this,
+
+Suppose, in a company office, there are 5 printers kept together on a floor and
+there are 100 employees on that floor.
+
+Any employee can give a command to print a document anytime and whichever
+printer is free, that printer will take the command and start printing.
+
+We need to build a printing server software to match the printing requirement
+and printers.
+
+To solve this issue, we can take 2 queues, one queue will have id's of the free
+printers, and another has the document id's for which employees have given
+print command.
+
+    Printer_Queue <== List of free printers (printer id's)
+    Documents_Queue <== List of documents to be printed. (Document id's)
+
+Both are circular queues and enqueue can happen anytime.
+
+Also, there are 2 threads, one maintains(enqueue & dequeue) 'Printer_Queue' and
+another maintains(enqueue & dequeue) 'Documents_Queue'. Both the threads are
+part of a single process. Let's say that this process is present at printer
+server.
+
+We have to write a synchronization method between these 2 threads, such that,
+whenever a 'printer id' is available by doing dequeue from a Printer_Queue, it
+should wait for a 'docuement id' to be available, and if available, command will
+be given to the printer to print that particular document.
+
+Similarly, if there is any 'Document id' available by doing dequeue from a
+'Documents_Queue', it should wait for 'printer id' to be available and if
+available, command will be given to the printer to print that particular
+document.
+
+Note : Since these are queues, they follow, first come first server. Means,
+whichever printer is available first, that will be given the command first,
+and whichever document is available first, will be sent for the printing first.
+
+[ ] gcc queue.c -lpthread
+[ ] ./a.out
+Thread Document : Writing Docuemtn1 to printer1
+Thread Printer : Writing Docuemtn2 to printer2
+Thread Printer : Writing Docuemtn3 to printer3
+Thread Document : Writing Docuemtn4 to printer4
+Thread Document : Writing Docuemtn5 to printer5
+Thread Printer : Writing Docuemtn6 to printer1
+Thread Printer : Writing Docuemtn7 to printer2
+Thread Document : Writing Docuemtn8 to printer3
+Thread Document : Writing Docuemtn9 to printer4
+Thread Printer : Writing Docuemtn10 to printer5
+Thread Printer : Writing Docuemtn11 to printer1
+Thread Document : Writing Docuemtn12 to printer2
