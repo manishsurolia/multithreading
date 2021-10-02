@@ -38,6 +38,10 @@ Executed Critical point.
 Executed Critical point.
 Executed Critical point.
 
+Above, you can see that until all the threads executed "rendezvous code", no one
+entered in the 'critical point' and once all the threads have completed its
+'rendezvous code', all of them started passing through 'Critical point'.
+
 The below pattern (from barrier.c file), a wait and a signal in rapid
 succession, occurs often enough that it has a name; it’s called a "turnstile",
 because it allows one thread to pass at a time, and it can be locked to bar all
