@@ -1,0 +1,54 @@
+Consider again the Rendezvous problem from earlier Section.
+A limitation of the solution we presented is that it does not work with more
+than two threads.
+
+Puzzle: Generalize the rendezvous solution. Every thread should run the
+following code:
+
+---------------------
+    rendezvous
+    critical point
+--------------------
+
+The synchronization requirement is that no thread executes critical point until
+after all threads have executed rendezvous.
+
+You can assume that there are n threads and that this value is stored in a
+variable, n, that is accessible from all threads.
+
+When the first n − 1 threads arrive they should block until the nth thread
+arrives, at which point all the threads may proceed.
+
+Solution:
+--------
+
+Solution is provided in barrier.c file.
+
+[ ] gcc barrier.c -lpthread
+[ ] ./a.out
+How many thread, you want to create? 5
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point.
+
+The below pattern (from barrier.c file), a wait and a signal in rapid
+succession, occurs often enough that it has a name; it’s called a "turnstile",
+because it allows one thread to pass at a time, and it can be locked to bar all
+threads.
+
+if (count == n) {
+    sem_post(&barrier);
+}
+
+sem_wait(&barrier);
+sem_post(&barrier);
+
+In its initial state (zero), the turnstile is locked. The nth thread unlocks it
+and then all n threads go through.
