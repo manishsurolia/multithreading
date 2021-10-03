@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 /*
- * Buffer to produce and consumer data.
+ * Buffer to produce and consume data.
  * Shared between threads.
  * Will be used in circular fashion.
  */
@@ -64,7 +64,7 @@ int main(void)
     /*
      * Initially producer has all the resources, but consumer does not have any.
      * Once producer adds data in the buffer, resources will be added to the
-     * consumer semaphore.
+     * consumer semaphore, and vice-versa.
      */
     sem_init(&producer_resources, 0, buffer_size);
     sem_init(&consumer_resources, 0, 0);
