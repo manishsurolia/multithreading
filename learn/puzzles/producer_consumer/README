@@ -1,0 +1,91 @@
+Producer-consumer problem
+------------------------
+
+There is a common global buffer between producer threads and consumer threads.
+The job of producer thread is to produce data and store in the buffer.
+The job of consumer thread is to consume data from the buffer.
+
+Puzzle: Add synchronization statements to the producer and consumer code to
+enforce the synchronization constraints.
+
+To solve this issue, we use semaphores as resources.
+
+Initially there is no data in the buffer, and suppose buffer size is SIZE.
+
+So, lets give all the 'SIZE' number of resources to the producer thread (by
+adding resources in the producer's resource pool semaphore), so that producers
+can just do 'sem_wait', take one resource(decrementing the value of semaphore),
+and write in the buffer. This can be done 'SIZE' number of times by one or
+multiple producers.
+
+As and when any producer produce data in the buffer, it takes one resource from
+its pool, add data data to the buffer, and adds a resource to the consumer's
+resource pool.
+
+So, initially, consumers will have 0 in their resource pool and as and when it
+consumes data from the resource pool, it will add back the resource to the
+producer's pool.
+
+Lets check this code from the implementation (producer_consumer.c).
+
+sem_init(&producer_resources, 0, buffer_size);  <-- producer has all the resources at starting.
+sem_init(&consumer_resources, 0, 0)             <-- Consumer has no resource at starting.
+
+void *producer_func(void *args)
+{
+    -- some code --
+    sem_wait(&producer_resources); // Take a resource from the producer's resource pool.
+    buffer[producer_index] = rand() % 100; // put data in the buffer.
+    producer_index = (producer_index + 1) % buffer_size; // increment the index.
+    sem_post(&consumer_resources); // Add a resource to the consumer's resource pool.
+    -- some code --
+}
+
+void *consumer_func(void *args)
+{
+    -- some code --
+    sem_wait(&consumer_resources); // Take a resource from the consumer's resource pool.
+    temp = buffer[consumer_index]; // Consume data from the buffer.
+    consumer_index = (consumer_index + 1) % buffer_size; // increment the index.
+    sem_post(&producer_resources); //  Add a resource to the producer's resource pool.
+    -- some code --
+}
+
+Here, you can see that both the producer and consumer are using different index
+and they access the buffer only when resources is available. Means, they don't
+need any synchronization mutex.
+
+But if there are more number of writers or readers, we need to have one mutex to
+make sure that only one reader write at a time in the buffer, and one mutex to
+make sure that only one reader reads from the buffer at a time.
+
+[ ] gcc producer_consumer.c -lpthread
+[ ] ./a.out
+What is the size of Buffer
+5
+Producer1 : Data 83 added to the buffer.
+Producer1 : Data 86 added to the buffer.
+Producer1 : Data 77 added to the buffer.
+Producer3 : Data 15 added to the buffer.
+Consumer1 : Data 83 consumed from the buffer.
+Producer2 : Data 93 added to the buffer.
+Consumer2 : Data 86 consumed from the buffer.
+Consumer1 : Data 77 consumed from the buffer.
+Producer1 : Data 35 added to the buffer.
+Consumer2 : Data 15 consumed from the buffer.
+Producer3 : Data 86 added to the buffer.
+Consumer1 : Data 93 consumed from the buffer.
+Consumer2 : Data 35 consumed from the buffer.
+Producer1 : Data 92 added to the buffer.
+Producer1 : Data 49 added to the buffer.
+Consumer2 : Data 86 consumed from the buffer.
+Producer3 : Data 21 added to the buffer.
+Consumer1 : Data 92 consumed from the buffer.
+Producer1 : Data 62 added to the buffer.
+Consumer2 : Data 49 consumed from the buffer.
+Producer3 : Data 27 added to the buffer.
+Consumer1 : Data 21 consumed from the buffer.
+Producer2 : Data 90 added to the buffer.
+
+Above, you can see that data produce and consume are completely synchronized
+between multiple producers and multiple consumers.
