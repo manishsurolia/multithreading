@@ -1,0 +1,32 @@
+The only difference between this program and the last read-write program, is
+that, it has a barrier code added in reader, due to which writer also get a
+chance to execute, because 'sem_post()' for the barrier is done only by writer.
+
+We can further change the program to accommodate our requirements.
+
+[ ] gcc reader_writer.c  -lpthread
+[ ] ./a.out
+Writer : Written value to buffer : 83
+Writer : Written value to buffer : 86
+Writer : Written value to buffer : 77
+Writer : Written value to buffer : 15
+Writer : Written value to buffer : 93
+Reader2 : Read value from buffer : 93
+Reader1 : Read value from buffer : 93
+Reader2 : Read value from buffer : 93
+Reader1 : Read value from buffer : 93
+Reader2 : Read value from buffer : 93
+Writer : Written value to buffer : 35
+Writer : Written value to buffer : 86
+Reader1 : Read value from buffer : 86
+Reader2 : Read value from buffer : 86
+Writer : Written value to buffer : 92
+Reader2 : Read value from buffer : 92
+Writer : Written value to buffer : 49
+Reader1 : Read value from buffer : 49
+Writer : Written value to buffer : 21
+Reader2 : Read value from buffer : 21
+Writer : Written value to buffer : 62
+Reader1 : Read value from buffer : 62
+Writer : Written value to buffer : 27
+Reader2 : Read value from buffer : 27
