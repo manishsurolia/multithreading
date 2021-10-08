@@ -1,0 +1,56 @@
+The only difference between this program and the earlier barrier program, is
+that, this one does not use 'barrier' semaphore. Instead it uses a combination
+of a local variable 'local_sense' and a global variable 'release'.
+
+Note : A binary semaphore is still used as mutex.
+
+Initially both of them will be opposite. I have initialized global 'release' as
+0 and local 'local_sense' as 1.
+
+The barrier code waits in a while loop, until both of them become same and the
+condition to become both of them as same is that the count should reach the
+max number of total threads.
+
+Below is the code for barrier.
+
+int release = 0; // Global.
+
+
+    local_sense = 1; // Local.
+
+    // Barrier code start.
+    sem_wait(&mutex);
+    count++;
+    sem_post(&mutex);
+
+    if (count == total_threads) {
+        release = local_sense;
+    }
+
+    while (release != local_sense); <- Wait here, until condition gets FALSE.
+    // Barrier code end.
+
+
+Above, you can see that each thread will be stuck in the while loop until
+release becomes same as local_sense and that will happen only when the count
+reaches the number of max threads.
+
+[ ] gcc barrier_without_semaphore.c -lpthread
+[ ] ./a.out
+How many threads you want to create.
+5
+Executed Rendezous code.
+Executed Rendezous code.
+Executed Rendezous code.
+Executed Rendezous code.
+Executed Rendezous code.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point.
+Executed Critical point
+
+Note : This barrier is only one time usable. You can't use it multiple times
+in the same thread, because once the value of 'local_sense' becomes same as
+'release', it will not stop in the while loop next time. We need to write
+re-usable barrier in different way.
