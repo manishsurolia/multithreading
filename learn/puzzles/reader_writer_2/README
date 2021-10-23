@@ -1,32 +1,27 @@
-The only difference between this program and the last read-write program, is
-that, it has a barrier code added in reader, due to which writer also get a
-chance to execute, because 'sem_post()' for the barrier is done only by writer.
+This Program is an extension to the last reader-writer problem. Please check the
+last reader-writer first before proceeding further.
 
-We can further change the program to accommodate our requirements.
+If a writer arrives while there are readers in the critical section, it might
+wait in queue forever while readers come and go. As long as a new reader arrives
+before the last of the current readers departs, there will always be at least
+one reader in the room.
 
-[ ] gcc reader_writer.c  -lpthread
-[ ] ./a.out
-Writer : Written value to buffer : 83
-Writer : Written value to buffer : 86
-Writer : Written value to buffer : 77
-Writer : Written value to buffer : 15
-Writer : Written value to buffer : 93
-Reader2 : Read value from buffer : 93
-Reader1 : Read value from buffer : 93
-Reader2 : Read value from buffer : 93
-Reader1 : Read value from buffer : 93
-Reader2 : Read value from buffer : 93
-Writer : Written value to buffer : 35
-Writer : Written value to buffer : 86
-Reader1 : Read value from buffer : 86
-Reader2 : Read value from buffer : 86
-Writer : Written value to buffer : 92
-Reader2 : Read value from buffer : 92
-Writer : Written value to buffer : 49
-Reader1 : Read value from buffer : 49
-Writer : Written value to buffer : 21
-Reader2 : Read value from buffer : 21
-Writer : Written value to buffer : 62
-Reader1 : Read value from buffer : 62
-Writer : Written value to buffer : 27
-Reader2 : Read value from buffer : 27
+This situation is not a deadlock, because some threads are making progress, but
+it is not exactly desirable. A program like this might work as long as the load
+on the system is low, because then there are plenty of opportunities for the
+writers. But as the load increases the behavior of the system would deteriorate
+quickly (at least from the point of view of writers).
+
+Puzzle:
+
+Extend the last solution so that when a writer arrives, the existing
+readers can finish, but no additional readers may enter.
+
+Solution:
+
+We add a turnstile for the readers and allow writers to lock it. The writers
+have to pass through the same turnstile, but they should check the 'turnstile'
+semaphore while they are inside the turnstile. If a writer gets stuck in the
+turnstile it has the effect of forcing the readers to queue at the turnstile.
+Then when the last reader leaves the critical section, we are guaranteed that at
+least one writer enters next (before any of the queued readers can proceed).
