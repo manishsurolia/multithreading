@@ -5,7 +5,7 @@ The synchronization constraints are:
 2. Writers must have exclusive access to the critical section.
 
 In other words, a writer cannot enter the critical section while any other
-thread (reader or writer) is there, and while the writer is there, no other
+thread (reader or writer) is there, and while a writer is there, no other
 thread may enter.
 
 The exclusion pattern here might be called categorical mutual exclusion. A
@@ -25,51 +25,38 @@ out turns it off (unlocks the mutex).
 
 [ ] gcc reader_writer.c -lpthread
 [ ] ./a.out
-Writer : Written value to buffer : 83
-Writer : Written value to buffer : 86
-Writer : Written value to buffer : 77
-Writer : Written value to buffer : 15
-Writer : Written value to buffer : 93
-Writer : Written value to buffer : 35
-Writer : Written value to buffer : 86
-Writer : Written value to buffer : 92
-Writer : Written value to buffer : 49
-Writer : Written value to buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-Reader2 : Read value from buffer : 21
-Reader1 : Read value from buffer : 21
-....
+Reader5 : Read value from buffer : 0
+Reader5 : Read value from buffer : 0
+Reader4 : Read value from buffer : 0
+Reader4 : Read value from buffer : 0
+Reader3 : Read value from buffer : 0
+Reader3 : Read value from buffer : 0
+Reader2 : Read value from buffer : 0
+Reader2 : Read value from buffer : 0
+Reader1 : Read value from buffer : 0
+Reader1 : Read value from buffer : 0
+Writer2 : Written value to buffer : 83
+Writer2 : Written value to buffer : 86
+Writer1 : Written value to buffer : 77
+Writer1 : Written value to buffer : 15
 
-Above, you can see that after writer wrote data to buffer, both readers are
-reading the buffer alternatively without taking writer's lock because anytime
-there is at least one reader present.. Hence, we have achieved the solution for
-reader-writer problem.
+For simplicity, I have used only two writers in this example, and there are five
+readers.
 
-But still ther is an issue that, since there is one or the other reader present,
-because not lock needed for multiple readers, our writer is not able to run it
-again. It is called starvation problem.
+As you can see the output above it works fine. Check the code for complete
+details.
+
+Starvation for writers:
+----------------------
+
+If a writer arrives while there are readers in the critical section, it might
+wait in queue forever while readers come and go. As long as a new reader arrives
+before the last of the current readers departs, there will always be at least
+one reader in the room.
+
+A program like this might work as long as the load on the system is low, because
+then there are plenty of opportunities for the writers. But as the load
+increases the behavior of the system would deteriorate quickly (at least from
+the point of view of writers).
+
+We will talk about this in the next section of reader_writers synchronization.
