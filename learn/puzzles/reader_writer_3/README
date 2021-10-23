@@ -1,0 +1,40 @@
+Writer-priority readers-writers
+-------------------------------
+
+This Program is an extension to the last reader-writer problem where we fixed
+the writer's starve issue. Please check the last reader-writer first before
+proceeding further.
+
+After fixing the writer's starve issue, we are sure that a writer will hold the
+turnstile of reader, so it will be able to write and will not starve.
+
+But still just after completion of this one writer, again the turnstile will go
+back to the readers and again they will start reading continuously.
+
+In many applications, we want to give priority/precedence to the writer threads.
+Means, if there is more than one writer thread, wants to write, they all should
+be given the priority.
+
+To give precedence to writers, we take one more mutex(mutex1) and keep counting
+the number of writers thread, when the writer thread count is 1, it takes the
+turnstile, and release it only when its back to 0. Meanwhile, all writers can
+come and take the mutex1 and write to the buffer and not release the turnstile.
+Only when the writer counter becomes 0, writers will release the turnstile and
+readers will get opportunity to read from the buffer.
+
+[ ] gcc reader_writer.c  -lpthread
+[ ] ./a.out
+Reader5 : Read value from buffer : 0
+Reader5 : Read value from buffer : 0
+Reader4 : Read value from buffer : 0
+Reader4 : Read value from buffer : 0
+Reader3 : Read value from buffer : 0
+Reader3 : Read value from buffer : 0
+Reader2 : Read value from buffer : 0
+Reader2 : Read value from buffer : 0
+Reader1 : Read value from buffer : 0
+Reader1 : Read value from buffer : 0
+Writer2 : Written value to buffer : 83
+Writer2 : Written value to buffer : 86
+Writer1 : Written value to buffer : 77
+Writer1 : Written value to buffer : 15
