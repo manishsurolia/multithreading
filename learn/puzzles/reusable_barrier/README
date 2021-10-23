@@ -1,0 +1,152 @@
+Can we use a barrier multiple time in the same execution flow?
+
+Let's check this below code from our last barrier code.
+
+void barrier(void)
+{
+    sem_wait(&mutex);
+    count++;
+    sem_post(&mutex);
+
+    if (count == n) {
+        sem_post(&trunstile);
+    }
+
+    sem_wait(&trunstile);
+    sem_post(&trunstile);
+
+    return;
+}
+
+Let's try to use it for more than one critical points in the same flow.
+
+void * thread_func(void *args)
+{
+    printf("Executed rendezvous code.\n");
+    barrier();
+    printf("Executed Critical point-1.\n");
+    barrier();
+    printf("Executed Critical point-2.\n");
+    return 0;
+}
+
+Do you think, this barrier code will work fine(means all threads will first
+complete the printing of "Executed Critical point-1." before going for
+"Executed Critical point-2.".
+
+No, it will not work with the above implementation of the barrier function.
+Try to see why, before reading further.
+
+Let's try to understand why this barrier code can be used more than once.
+Follow the below  steps,
+
+(1) Assume there are two threads, T1 and T2.
+
+(2) First T1 starts executing the common 'func' and calls barrier, 'count'
+increment happens, 'if condition' fails, and then it starts waiting for the
+turnstile. Remember, we initialized 'turnstile' with 0 in main().
+
+(3)  Now, the execution switch to T2, T2 also calls barrier, 'count' increment
+happens, this time if condition passes, and there is a sem_post() happens for
+this.
+
+(4) Assume that T2 continue to execute, it will call sem_wait() and then again
+sem_post(), so when the barrier function is returning for T2, we have count as
+1 in the turnstile.
+
+(5) Assume that T2 still continues in the 'thread_func', prints
+"Executed Critical point-1." and again calls barrier() function. In the step-4,
+we made the value of turnstile as 1, so this time when the barrier goes for
+sem_wait(), it just gets the turnstile, and continue with the further execution
+and prints "Executed Critical point-2.".
+
+(6) Notice, that T1 has not yet complete the first print
+"Executed Critical point-1.", and T2 is done with both the printings.
+
+This is the problem with using this barrier code for more than once in the same
+code flow.
+
+How to make this barrier function reusable?
+
+One way to reuse the barrier function is to use two turnstiles in the barrier
+function.
+
+The logic of using two turnstiles in barrier code is simple,
+We need to reset the first turnstile before going for next barrier call.
+
+Means, we are making count as 0 (as it was initially), the value in the first
+turnstile should be 0 (as it was initially).
+
+Also, for each turnstile we do only the required number of sem_post() with a for
+loop, when all thread increment is done.
+
+Please check the below logic. It's quite straight forward.
+Here, we are just making sure that each of the thread has to pass through at
+least the first turnstile before further execution.
+
+void barrier(void)
+{
+    // Phase-1 barrier
+    sem_wait(&mutex);
+    count++;
+    sem_post(&mutex);
+
+    if (count == n) {
+        for (int i=0; i < n; i++) {
+            sem_post(&turnstile1);
+        }
+    }
+
+    sem_wait(&turnstile1);
+
+    // Phase-2 barrier
+    sem_wait(&mutex);
+    count--;
+    sem_post(&mutex);
+
+    if (count == 0) {
+        for (int i=0; i < n; i++) {
+            sem_post(&turnstile2);
+        }
+    }
+
+    sem_wait(&turnstile2);
+
+    return;
+}
+
+Below is the execution. You can see that our new barrier code is working fine.
+
+[ ] gcc reusable_barrier.c -lpthread
+[ ] ./a.out
+How many thread, you want to create? 5
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed rendezvous code.
+Executed Critical point-1.
+Executed Critical point-1.
+Executed Critical point-1.
+Executed Critical point-1.
+Executed Critical point-1.
+Executed Critical point-2.
+Executed Critical point-2.
+Executed Critical point-2.
+Executed Critical point-2.
+Executed Critical point-2.
+Executed Critical point-3.
+Executed Critical point-3.
+Executed Critical point-3.
+Executed Critical point-3.
+Executed Critical point-3.
+Executed Critical point-4.
+Executed Critical point-4.
+Executed Critical point-4.
+Executed Critical point-4.
+Executed Critical point-4.
+Executed Critical point-5.
+Executed Critical point-5.
+Executed Critical point-5.
+Executed Critical point-5.
+Executed Critical point-5.
