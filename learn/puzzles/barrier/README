@@ -40,7 +40,10 @@ Executed Critical point.
 
 Above, you can see that until all the threads executed "rendezvous code", no one
 entered in the 'critical point' and once all the threads have completed its
-'rendezvous code', all of them started passing through 'Critical point'.
+'rendezvous code', all of them started passing through 'Critical point' one by
+one. The semaphore used to pass each thread one by one through critical point,
+is called 'turnstile'. Check the code to see how it is used to develop a
+barrier.
 
 The below pattern (from barrier.c file), a wait and a signal in rapid
 succession, occurs often enough that it has a name; it’s called a "turnstile",
