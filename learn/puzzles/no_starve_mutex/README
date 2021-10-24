@@ -1,0 +1,107 @@
+Reference : 'The Little Book of Semaphores' by 'Allen B. Downey'
+
+Mutex starvation and its solution:
+---------------------------------
+
+Let's try to understand 'mutex starvation' with below example,
+
+void *func(void *args)
+{
+    while(1) {
+        sem_wait(&mutex);
+        printf("Executing code for : %s\n", (char *)args);
+        sem_post(&mutex);
+    }
+    return NULL;
+}
+
+Lets assume that below is the common function for 4 threads, namely, T1, T2, T3
+and T4.
+
+Suppose, T1 starts with the execution, and other threads(T2, T3, T4) are in
+ready state.
+
+T1 takes this mutex, execute printf code and release the mutex by doing
+'sem_post()'.
+
+Now, the question is, which thread will get the mutex this time?
+
+Let's say this time T2 will get the mutex, when T2 releases it, T3 will
+get...and so on. But actually this completely depends on the thread scheduler
+of our OS. If scheduler is very fair, and it maintains a queue(FIFO), then we
+are sure that all threads will execute fairly.
+
+Every OS uses different thread scheduling mechanisms and we can not say which
+thread will get the mutex next, it may happen that once T1 releases the mutex,
+scheduler gives mutex to T2 and when T2 releases it, scheduler gives this mutex
+to T1 again..and so on. This results in starvation for T3 and T4 and the topic
+for our discussion.
+
+Property-1: if a thread is waiting at a semaphore, then the number of threads
+that will be woken before it is bounded. This property is called
+'strong semaphore'.
+
+If we are sure that our OS thread scheduler is always using some kind of bounded
+scheduling then we don't need to worry. Each thread will get the mutex after a
+bounded thread executions and we don't need to do anything more about it.
+
+but if we are not sure about it, we need to make sure that each thread gets its
+fair share of mutex.
+
+Property-2 : If there are threads waiting on a semaphore when a thread executes
+signal, then one of the waiting threads has to be woken. This property is called
+'a weak semaphore'.
+
+Puzzle: write a solution to the mutual exclusion problem using weak semaphores.
+Your solution should provide the following guarantee: once a thread arrives and
+attempts to enter the mutex, there is a bound on the number of threads that can
+proceed ahead of it. You can assume that the total number of threads is finite.
+
+One solution to make the bounded semaphore is to use re-usable barrier. Check
+the code to find out how.
+
+In the below execution, you can see that each thread has to wait maximum of
+'n*2' semaphore before its turn.
+
+[ ] gcc no_starve_mutex.c -lpthread
+[ ] ./a.out
+Executing code for : T7
+Executing code for : T8
+Executing code for : T9
+Executing code for : T10
+Executing code for : T6
+Executing code for : T5
+Executing code for : T4
+Executing code for : T3
+Executing code for : T2
+Executing code for : T1
+Executing code for : T7
+Executing code for : T8
+Executing code for : T9
+Executing code for : T10
+Executing code for : T6
+Executing code for : T5
+Executing code for : T4
+Executing code for : T3
+Executing code for : T2
+Executing code for : T1
+Executing code for : T7
+Executing code for : T8
+Executing code for : T9
+Executing code for : T10
+Executing code for : T6
+Executing code for : T5
+Executing code for : T4
+Executing code for : T3
+Executing code for : T2
+Executing code for : T1
+Executing code for : T7
+Executing code for : T8
+Executing code for : T9
+Executing code for : T10
+Executing code for : T6
+Executing code for : T5
+Executing code for : T4
+Executing code for : T3
+Executing code for : T2
+Executing code for : T1
