@@ -1,0 +1,32 @@
+Reference : 'The Little Book of Semaphores' by 'Allen B. Downey'.
+
+Puzzle: write a solution to this problem that prevents deadlock.
+Hint: one way to avoid deadlock is to think about the conditions that make
+deadlock possible and then change one of those conditions. In this case, the
+deadlock is fairly fragile. A very small change breaks it.
+
+Solution:
+--------
+
+This solution works on the idea that if there are only 'n-1' philosohers allowed
+to eat when there are 'n' forks present on the table, they can not go in a
+deadlock situation.
+
+To do this, we use a multiplex, called 'footman'. This multiplex makes sure that
+there can be maximum of 'MAX-1' philosophers which can apptempt to take the
+forks.
+
+Check the program to find complete details about the solution.
+
+In addition to avoiding deadlock, this solution also guarantees that no
+philosopher starves. Imagine that you are sitting at the table and both of your
+neighbors are eating. You are blocked waiting for your right fork. Eventually
+your right neighbor will put it down, because eat can’t run forever. Since you
+are the only thread waiting for that fork, you will necessarily get it next.
+By a similar argument, you cannot starve waiting for your left fork.
+
+Therefore, the time a philosopher can spend at the table is bounded. That
+implies that the wait time to get into the room is also bounded.
+
+This solution shows that by controlling the number of philosophers, we can avoid
+deadlock.
