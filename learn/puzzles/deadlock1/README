@@ -1,0 +1,105 @@
+This program is a solution of reader-writers problem, Where more than one reader
+can read the value at same time and only one writer will write to the memory at
+a time.
+
+This solution has a deadlock issue. Find out where is the deadlock?
+Hint is below. But try to find it yourself before going for the hint.
+
+Hint:
+----
+
+In below code, assume below points,
+
+(1) There are some reader threads getting executed. Very first reader takes
+the write lock, and other reader also come in to read the memory. Each reader
+thread takes the turnstile, increment the reader count and goes for the read.
+See reader_lock().
+
+(2) When writer thread wakes up, it starts waiting for the same turnstile (
+see function 'writer_lock'), so that more readers threads can't go for the read.
+
+(3) At some point, writer thread gets the turnstile, and starts waiting for
+wr_lock,
+Now, no more reader threads can go for reading of the data.
+
+(4) Now, a reader comes and takes the mutex lock and starts waiting for the
+turnstile, which has been taken by a writer(in step 3).
+
+(5) The other reader's who entered before writer took the wr_Lock, goes for
+the reader_unlock(). But here, they can't take the mutex lock, because mutex has
+been already taken by other readers who are trying to get in and blocked for
+turnstile.
+
+In a nutshell,
+
+- Readers who call reader_unlock(), is waiting for 'mutex' to release 'wr_lock'.
+- This 'mutex' has already been taken by other reader thread in reader_lock()
+and waiting for turnstile.
+- This turnstile has been taken by the writer and waiting for the 'wr_lock' to
+exexute further.
+
+See below code and try to understand the deadlock situation.
+
+void reader_lock(void)
+{
+    sem_wait(&mutex);
+    sem_wait(&reader_turnstile);
+    reader_count++;
+    if (reader_count == 1) {
+        sem_wait(&wr_lock);
+    }
+    sem_post(&reader_turnstile);
+    sem_post(&mutex);
+    return;
+}
+
+void reader_unlock(void)
+{
+    sem_wait(&mutex);
+    if (reader_count == 1) {
+        sem_post(&wr_lock);
+    }
+    reader_count--;
+    sem_post(&mutex);
+    return;
+}
+
+void writer_lock(void)
+{
+    sem_wait(&reader_turnstile);
+    sem_wait(&wr_lock);
+    return;
+}
+
+
+Fix:
+---
+
+Just make sure that in reader_lock() function, taking 'turnstile' is not under
+'mutex'. Rather, we should first take the 'turnstile' and then go for the
+'mutex'. So that mutex is free for the reader_uonlock().
+This will solve the issue.
+
+void reader_lock(void)
+{
+    sem_wait(&reader_turnstile);
+    sem_wait(&mutex);
+    reader_count++;
+    if (reader_count == 1) {
+        sem_wait(&wr_lock);
+    }
+    sem_post(&mutex);
+    sem_post(&reader_turnstile);
+    return;
+}
+
+Notes:
+-----
+
+I find 2 learning from this.
+Learning 1 : Keep as less semaphores as possible for threads synchronization.
+More usage of semaphores make it more complex to debug.
+
+Learning 2: Sequence of sem_posts (for different semaphores) don't cause any
+deadlock/race conditions. The sequence of sem_wait(for different semaphores) can
+cause deadlock. So, be careful on that. 
