@@ -1,0 +1,18 @@
+This program is to fix the problem of cigarette smoker problem.
+To understand the problem, first check the earlier section.
+
+As explained in the earlier section, we have a deadlock when an agent provides
+two resources(any of tobacco, paper and matches), then if these resources are
+taken by different threads(out of three smoker threads), then the program goes
+in a deadlock situation.
+
+To solve this issue, we have to take 3 helper threads, one just waits for the
+tobacco, one waits for the matches and the last waits for the paper.
+
+As soon as any of them get the resource it will update the global variable
+'flag' with its correct value.
+
+All the smoker threads will now keep reading this 'flag' and as soon as they
+get the related value of the flag, they go forward, make and consume the
+cigarettes and release the agent lock. Before that they make the 'flag' also as
+0. So, it again can be written freshly by the helper functions.
