@@ -1,0 +1,55 @@
+This is an interesting problem taken from the book 'LittleBookOfSemaphores.pdf'
+by 'Allen B. Downey'.
+
+Go through the problem in the book to understand.
+This program is replica of the same problem.
+
+Important note : The agent(any of the three agent threads), can release more
+ingredients only when the previously provided ingredients are consumed.
+Otherwise, none of the agent thread will release any of the ingredient.
+
+That's why,
+
+    -   Initially 'agent_sem' has value 1, so that the any agnet thread can
+        start the supply of its ingredients and then as and when the ingredients
+        are completely consumed, this agent lock is released by the smoker and
+        then an agent thread will take the lock and supply more ingredients, and
+        so on.
+
+    -   So, If the provided ingredients are consumed by a single smoker, we are
+        good, the smoker will consume both the ingredients, make cigarette,
+        smoke it and then release the agent lock. Again new ingredients will be
+        released by one of the agent threads. It will just go on.
+
+    -   But, if the released ingredients are consumed by different smokers, then
+        the agent lock will not be released, as both the smokers will be waiting
+        for one more ingredient and NOT do 'sem_post' for agent lock. Third
+        smoker is anyway waiting for some ingredients, so no 'sem_post' for
+        'agent_sem'. This is a deadlock situation. Every smoker is waiting for
+        one or the other ingredient and agent is waiting for its lock.
+
+[ ] gcc cigarette_smokers_problem.c -lpthread
+[ ] ./a.out
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+Smoker1 : Got tobacco and matchess
+Smoker1 : Making
+Smoker1 : Smoking
+
+    <--- Deadlock here.
