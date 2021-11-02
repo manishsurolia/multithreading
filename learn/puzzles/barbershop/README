@@ -1,0 +1,103 @@
+This barbershop problem is taken from this book 'LittleBookOfSemaphores.pdf' by
+'Allen B. Downey'.
+
+Below is the problem.
+
+A barbershop consists of a waiting room with n chairs, and the barber room
+containing the barber chair. If there are no customers to be served, the barber
+goes to sleep. If a customer enters the barbershop and all chairs are occupied,
+then the customer leaves the shop. If the barber is busy, but chairs are
+available, then the customer sits in one of the free chairs. If the barber is
+asleep, the customer wakes up the barber. Write a program to coordinate the
+barber and the customers.
+
+This solution here is written just based on the above problem statement. No
+other instructions taken from the book.
+
+To solve this problem a semaphore 'barber_sem' is taken and this is incremented
+by the customers (only if chairs are available) who arrive at the barber's shop.
+Also, a global customer's counter is also incremented. If the customer count is
+reached to the total number of chairs, new customer leave the shop and not take
+any seat as their is not empty chair present.
+
+[ ] gcc barbershop.c -lpthread
+[ ] ./a.out
+How many customers we want to send?40
+How many chairs are present?5
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+All chairs are full. Customer returning.
+All chairs are full. Customer returning.
+All chairs are full. Customer returning.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Customer taking a seat.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
+Barber doing haircut.
