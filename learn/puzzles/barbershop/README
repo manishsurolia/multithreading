@@ -11,93 +11,107 @@ available, then the customer sits in one of the free chairs. If the barber is
 asleep, the customer wakes up the barber. Write a program to coordinate the
 barber and the customers.
 
-This solution here is written just based on the above problem statement. No
-other instructions taken from the book.
+This is an interesting problem, where one thread (barber thread) serves the
+other multiple threads(customers), but one at a time. No two customers can get
+hair cut done at a time.
 
-To solve this problem a semaphore 'barber_sem' is taken and this is incremented
-by the customers (only if chairs are available) who arrive at the barber's shop.
-Also, a global customer's counter is also incremented. If the customer count is
-reached to the total number of chairs, new customer leave the shop and not take
-any seat as their is not empty chair present.
+So, we need to make sure that at a point, there is only one customer thread
+getting executed along with the barber thread and only when the customer thread
+is done, the barber thread is supposed to serve the other customer threads.
+
+Solution:
+--------
+
+To solve this problem, we have three parts in the customer function.
+
+(1) Once a customer thread enters, it checks whether the 'customers' count is
+below the available seats(n) and increments the 'customers' count, otherwise
+just leave (balk()).
+
+(2) The same customer thread does 'sem_post(&customer)', for which the barber
+thread is waiting for and starts waiting for the 'barber' and as soon as barber
+does 'sem_post(&barber)', this thread and the barber, both go for the hair
+cutting. Means, customer calls 'get_hair_cut' and barber calls 'cut_hair' and
+both the threads are getting executed at the same time. Barber is now serving
+the customer.
+
+(3) Now, barber thread will keep serving the customer thread, until the customer
+is not satisfied with his hair cut. As soon as customer feels that he has got
+proper hair cut, it does 'sem_post(&customer_done)' and keep waiting for
+'sem_wait(&barber_done)'. When barber sends 'sem_post(&barber_done)', the job
+is complete and now barber can go to serve the other customer.
+
+One interesting thing to note here, is that, a barber can not go and serve other
+customer until the current customer is done.
+
+void *customer_func(void *args)
+{
+    sem_wait(&mutex);
+    if (customers == n) {
+        sem_post(&mutex);
+        printf("%s Leaving. No chairs available.\n", (char *)args);
+        balk();
+    }
+    customers++; //Scoreboared
+    printf("%s taking chair.\n", (char *)args);
+    sem_post(&mutex);
+
+    sem_post(&customer); // Rendazvous1
+    sem_wait(&barber);
+
+    get_hair_cut(args);
+
+    sem_post(&customer_done); // Rendazvous2
+    sem_wait(&barber_done);
+
+    sem_wait(&mutex);
+    customers--; //Scoreboared
+    sem_post(&mutex);
+
+    return NULL;
+}
+
+void *barber_func(void *args)
+{
+    while (1) {
+        sem_wait(&customer); // Rendazvous1
+        sem_post(&barber);
+
+        cut_hair();
+
+        sem_wait(&customer_done); // Rendazvous2
+        sem_post(&barber_done);
+    }
+
+    return NULL;
+}
 
 [ ] gcc barbershop.c -lpthread
 [ ] ./a.out
-How many customers we want to send?40
-How many chairs are present?5
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-All chairs are full. Customer returning.
-All chairs are full. Customer returning.
-All chairs are full. Customer returning.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Customer taking a seat.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
-Barber doing haircut.
+How many customers we want to send to the barber shop?15
+How many chairs are present at barber shop?5
+Customer6 taking chair.
+Customer7 taking chair.
+Customer8 taking chair.
+Customer9 taking chair.
+Customer10 taking chair.
+Customer11 Leaving. No chairs available.
+Customer12 Leaving. No chairs available.
+Customer5 Leaving. No chairs available.
+Customer13 Leaving. No chairs available.
+Customer14 Leaving. No chairs available.
+Customer6 : Getting hair cut done.
+Customer7 : Getting hair cut done.
+Customer8 : Getting hair cut done.
+Customer9 : Getting hair cut done.
+Customer10 : Getting hair cut done.
+Customer4 taking chair.
+Customer4 : Getting hair cut done.
+Customer3 taking chair.
+Customer3 : Getting hair cut done.
+Customer2 taking chair.
+Customer2 : Getting hair cut done.
+Customer1 taking chair.
+Customer1 : Getting hair cut done.
+Customer0 taking chair.
+Customer0 : Getting hair cut done.
