@@ -1,0 +1,5 @@
+Print “ABABABAB...” continusly with the help of 2 threads.
+
+[ ] gcc print.c -lpthread
+[ ] ./a.out
+ABABABABABAB
