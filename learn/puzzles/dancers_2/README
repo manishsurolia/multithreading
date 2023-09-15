@@ -1,0 +1,14 @@
+The issue with first dancer solution is that once scheduler can switch between
+the threads just after leader threads have done sem_post and the same happens
+with follower threads as well.
+
+Meaning, one or more leader just do sem_post(leader_on_stage) and execution
+switches to a follower without doing sem_wait for the followers and once the
+execution goes to the followers, they just keep consuming the leaders increased
+semaphore and continue going to the dance floor without any leader and later
+leader use the semaphore(follower_on_stage) increased by the followers.
+Hence, leader also go together rather than going with a follower and vice-versa.
+
+The Solution is simple, we can just add a mutex over leader thread execution, so
+that no other leader can enter in the queue before the current leader is done
+with a follower.
