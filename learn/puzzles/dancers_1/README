@@ -1,0 +1,48 @@
+This is another good problem mentioned in te book, "Little book of Semaphores"
+by "Allen B. Downey".
+
+Problem:
+-------
+
+Imagine that threads represent ballroom dancers and that two kinds of dancers,
+leaders and followers, wait in two queues before entering the dance floor. When
+a leader arrives, it checks to see if there is a follower waiting. If so, they
+can both proceed. Otherwise it waits.
+
+Similarly, when a follower arrives, it checks for a leader and either proceeds
+or waits, accordingly.
+
+Puzzle: write code for leaders and followers that enforces these constraints.
+
+Solution:
+--------
+
+To solve this puzzle, we need to make each leader depend on any one follower
+(does not matter which follower) and a each follower depend on a leader(does not
+matter which leader).
+
+A simple solution can be that when a leader enters the dance hall, he/she
+increases the 'leader_on_stage' semaphore count(initially 0) and keep waiting
+for 'follower_on_stage' semaphore and if its available, go for the dance.
+
+The same rule is followed by each follower, when a follower enters the dance
+hall, he/she increases the 'follower_on_stage' semaphore count(initially 0) and
+keep waiting for 'leader_on_stage' semaphore and if its available, go for the
+dance. 
+
+Note: This solution has a problem that more than 2 leaders/followers (check
+below output) can go together due to context switching between threads just
+after sem_post() calls. We will analyse this next.
+
+[root@archlinux dancers_1]# gcc dancers.c -lpthread
+[root@archlinux dancers_1]# ./a.out
+Leader L1 goes to the stage.
+Follower F1 goes to the stage.
+Follower F4 goes to the stage.
+Leader L2 goes to the stage.
+Follower F3 goes to the stage.
+Leader L4 goes to the stage.
+Leader L5 goes to the stage.
+Follower F2 goes to the stage.
+Follower F5 goes to the stage.
+Leader L3 goes to the stage.
