@@ -1,0 +1,41 @@
+Thread-local storage (TLS):
+--------------------------
+
+This section discusses thread-specific data storage and how to execute a
+piece of code only once within a common thread function, even if it's
+executed multiple times by different threads.
+
+Below are four key concepts covered in this section:
+
+pthread_key_t: This serves as a placeholder for the key used for
+thread-specific data.
+
+pthread_key_create(pthread_key_t *key, void (destructor)(void)):
+This function initializes a key only once among all threads. Additionally,
+you can specify a destructor function, which will be called when a thread
+exits.
+
+pthread_setspecific(pthread_key_t key, const void *value): This
+function sets a thread-specific void pointer address associated with the
+key.
+
+pthread_getspecific(pthread_key_t key): This function retrieves the
+thread-specific void pointer address previously set using
+pthread_setspecific.
+
+Note: The pthread_key_create() function initializes the key, which will be
+shared by all threads within the process. It should be initialized only
+once. If pthread_key_create() is called within a common thread code,
+pthread_once() can be used to ensure it's executed only once. If
+pthread_key_create() is called in the main thread before spawning any
+threads, pthread_once() is unnecessary. The key idea is to ensure
+pthread_key_create() is called only once among all threads for a particular key.
+
+[ ] gcc TLS.c -lpthread
+[ ] ./a.out
+Thread id : 139643964094144, Setting up Thread-specific data in the key: 0x7f015c000b70
+Thread id : 139643964094144, Getting thread-specific data from the key: 0x7f015c000b70
+Thread id : 139643964094144, Destructor called, value = 0x7f015c000b70
+Thread id : 139643955701440, Setting up Thread-specific data in the key: 0x7f015c000b70
+Thread id : 139643955701440, Getting thread-specific data from the key: 0x7f015c000b70
+Thread id : 139643955701440, Destructor called, value = 0x7f015c000b70 
