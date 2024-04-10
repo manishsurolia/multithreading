@@ -35,3 +35,4 @@ misguiding info.
 29. Dining philosophers problem.
 30. Dining philosophers solution.
 31. re-entrant with recursion.
+32. TLS (Thread-local storage).
